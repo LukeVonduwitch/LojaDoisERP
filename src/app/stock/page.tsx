@@ -1,6 +1,6 @@
 
 "use client";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -8,16 +8,21 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { DatePickerWithRange } from "@/components/ui/date-picker-range";
-import { PackageSearch, TrendingUp, DollarSign, Filter, Edit3, AlertCircle, ArrowUpDown, CalendarDays } from "lucide-react";
+import { PackageSearch, TrendingUp, DollarSign, Filter, Edit3, AlertCircle, ArrowUpDown, CalendarDays, PlusCircle, ChevronLeft, ChevronRight } from "lucide-react";
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+  DialogTrigger,
+  DialogClose,
+} from "@/components/ui/dialog";
+import { Label } from "@/components/ui/label";
 
-const DatePickerWithRangeFallback = () => (
-  <Button variant="outline" className="w-full justify-start text-left font-normal">
-    <CalendarDays className="mr-2 h-4 w-4" />
-    <span>Escolha um intervalo de datas</span>
-  </Button>
-);
 
 interface Product {
   id: string;
@@ -30,8 +35,8 @@ interface Product {
   supplier: string;
   lastOrderDate: string;
   image?: string;
-  profitability?: number; 
-  salesVolume?: number; 
+  profitability: number; 
+  salesVolume: number; 
 }
 
 const initialProducts: Product[] = [
@@ -42,9 +47,13 @@ const initialProducts: Product[] = [
   { id: "5", name: "Vestido Longo Floral", sku: "FMD005", stock: 5, unitPrice: 75.00, markup: 55, category: "Vestidos", supplier: "Designs Elegantes", lastOrderDate: "2023-05-25", image: "https://placehold.co/80x80.png", profitability: 41.25, salesVolume: 15 },
 ];
 
-const categories = ["Todos", "Blusas", "Partes de Baixo", "Vestidos", "Acessórios", "Calçados"];
-const suppliersList = ["Todos", "Vestuário Cia.", "Jeans Expresso", "Malhas Quentes Ltda.", "Calçados Finos Inc.", "Designs Elegantes"];
+const categories = ["Todos", "Blusas", "Partes de Baixo", "Vestidos", "Acessórios", "Calçados", "Casacos", "Saias", "Moda Praia"];
+const suppliersList = ["Todos", "Vestuário Cia.", "Jeans Expresso", "Malhas Quentes Ltda.", "Calçados Finos Inc.", "Designs Elegantes", "Fornecedor Alpha", "Importados Beta"];
 
+const productCategories = categories.filter(c => c !== "Todos");
+const productSuppliers = suppliersList.filter(s => s !== "Todos");
+
+const ITEMS_PER_PAGE = 10;
 
 export default function StockPage() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
@@ -58,6 +67,20 @@ export default function StockPage() {
   const [currentMarkup, setCurrentMarkup] = useState(0);
   const [dateRange, setDateRange] = useState<object | undefined>(undefined);
 
+  const [isAddProductDialogOpen, setIsAddProductDialogOpen] = useState(false);
+  const [newProductForm, setNewProductForm] = useState<Partial<Omit<Product, 'id' | 'profitability' | 'salesVolume' | 'lastOrderDate'>>>({
+    name: "",
+    sku: "",
+    stock: 0,
+    unitPrice: 0,
+    markup: 0,
+    category: productCategories[0] || "",
+    supplier: productSuppliers[0] || "",
+    image: "",
+  });
+
+  const [currentPage, setCurrentPage] = useState(1);
+
 
   const filteredProducts = useMemo(() => {
     return products.filter(product =>
@@ -68,6 +91,14 @@ export default function StockPage() {
     );
   }, [products, searchTerm, categoryFilter, supplierFilter, showLowStockOnly]);
   
+  const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+  const paginatedProducts = useMemo(() => {
+    const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
+    const endIndex = startIndex + ITEMS_PER_PAGE;
+    return filteredProducts.slice(startIndex, endIndex);
+  }, [filteredProducts, currentPage]);
+
+
   const insights = useMemo(() => {
     const sortedByOutput = [...products].sort((a, b) => (b.salesVolume ?? 0) - (a.salesVolume ?? 0)).slice(0, 5);
     const sortedByProfitability = [...products].sort((a, b) => (b.profitability ?? 0) - (a.profitability ?? 0)).slice(0, 5);
@@ -87,9 +118,114 @@ export default function StockPage() {
     }
   };
 
+  const handleNewProductInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setNewProductForm(prev => ({ ...prev, [name]: name === 'stock' || name === 'unitPrice' || name === 'markup' ? parseFloat(value) || 0 : value }));
+  };
+
+  const handleNewProductSelectChange = (name: string, value: string) => {
+    setNewProductForm(prev => ({ ...prev, [name]: value }));
+  };
+
+  const handleAddProduct = () => {
+    if (!newProductForm.name || !newProductForm.sku || !newProductForm.category || !newProductForm.supplier) {
+      alert("Por favor, preencha todos os campos obrigatórios (Nome, SKU, Categoria, Fornecedor).");
+      return;
+    }
+
+    const newProduct: Product = {
+      id: String(Date.now()),
+      name: newProductForm.name!,
+      sku: newProductForm.sku!,
+      stock: newProductForm.stock || 0,
+      unitPrice: newProductForm.unitPrice || 0,
+      markup: newProductForm.markup || 0,
+      category: newProductForm.category!,
+      supplier: newProductForm.supplier!,
+      image: newProductForm.image || `https://placehold.co/80x80.png?text=${newProductForm.name?.substring(0,2).toUpperCase() || 'P'}`,
+      lastOrderDate: new Date().toISOString().split('T')[0],
+      profitability: (newProductForm.unitPrice || 0) * ((newProductForm.markup || 0) / 100),
+      salesVolume: 0,
+    };
+    setProducts(prev => [newProduct, ...prev]);
+    setIsAddProductDialogOpen(false);
+    setNewProductForm({
+      name: "", sku: "", stock: 0, unitPrice: 0, markup: 0,
+      category: productCategories[0] || "", supplier: productSuppliers[0] || "", image: ""
+    });
+  };
+  
+  useEffect(() => {
+    setCurrentPage(1); // Reset to first page when filters change
+  }, [searchTerm, categoryFilter, supplierFilter, showLowStockOnly]);
+
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold font-headline text-foreground">Gerenciamento de Estoque</h1>
+
+      <Dialog open={isAddProductDialogOpen} onOpenChange={setIsAddProductDialogOpen}>
+        <DialogTrigger asChild>
+          <Button className="fixed bottom-6 right-6 z-50 shadow-lg rounded-full p-4 h-auto" size="lg">
+            <PlusCircle className="h-6 w-6 mr-2" /> Adicionar Novo Produto
+          </Button>
+        </DialogTrigger>
+        <DialogContent className="sm:max-w-[500px]">
+          <DialogHeader>
+            <DialogTitle>Adicionar Novo Produto</DialogTitle>
+            <DialogDescription>Preencha os detalhes do novo produto para adicioná-lo ao estoque.</DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4 max-h-[60vh] overflow-y-auto pr-2">
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="name" className="text-right">Nome*</Label>
+              <Input id="name" name="name" value={newProductForm.name} onChange={handleNewProductInputChange} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="sku" className="text-right">SKU*</Label>
+              <Input id="sku" name="sku" value={newProductForm.sku} onChange={handleNewProductInputChange} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="stock" className="text-right">Estoque Inicial</Label>
+              <Input id="stock" name="stock" type="number" value={newProductForm.stock} onChange={handleNewProductInputChange} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="unitPrice" className="text-right">Preço Unit. (Custo)</Label>
+              <Input id="unitPrice" name="unitPrice" type="number" step="0.01" value={newProductForm.unitPrice} onChange={handleNewProductInputChange} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="markup" className="text-right">Markup (%)</Label>
+              <Input id="markup" name="markup" type="number" value={newProductForm.markup} onChange={handleNewProductInputChange} className="col-span-3" />
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="category" className="text-right">Categoria*</Label>
+              <Select name="category" value={newProductForm.category} onValueChange={(value) => handleNewProductSelectChange("category", value)}>
+                <SelectTrigger className="col-span-3"><SelectValue placeholder="Selecione uma categoria" /></SelectTrigger>
+                <SelectContent>
+                  {productCategories.map(cat => <SelectItem key={cat} value={cat}>{cat}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="supplier" className="text-right">Fornecedor*</Label>
+               <Select name="supplier" value={newProductForm.supplier} onValueChange={(value) => handleNewProductSelectChange("supplier", value)}>
+                <SelectTrigger className="col-span-3"><SelectValue placeholder="Selecione um fornecedor" /></SelectTrigger>
+                <SelectContent>
+                  {productSuppliers.map(sup => <SelectItem key={sup} value={sup}>{sup}</SelectItem>)}
+                </SelectContent>
+              </Select>
+            </div>
+             <div className="grid grid-cols-4 items-center gap-4">
+              <Label htmlFor="image" className="text-right">URL da Imagem</Label>
+              <Input id="image" name="image" placeholder="https://placehold.co/80x80.png" value={newProductForm.image} onChange={handleNewProductInputChange} className="col-span-3" />
+            </div>
+          </div>
+          <DialogFooter>
+            <DialogClose asChild><Button variant="outline">Cancelar</Button></DialogClose>
+            <Button onClick={handleAddProduct}>Adicionar Produto</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
 
       <Tabs defaultValue="all-products">
         <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 gap-2 mb-6">
@@ -149,16 +285,17 @@ export default function StockPage() {
                       <TableHead className="cursor-pointer hover:bg-muted/50"><ArrowUpDown className="inline-block mr-1 h-4 w-4" />Nome</TableHead>
                       <TableHead>SKU</TableHead>
                       <TableHead className="text-right">Estoque</TableHead>
-                      <TableHead className="text-right">Preço Unitário</TableHead>
-                      <TableHead className="text-right">Margem de Lucro</TableHead>
-                      <TableHead className="text-right">Preço de Varejo</TableHead>
+                      <TableHead className="text-right">Preço Custo</TableHead>
+                      <TableHead className="text-right">Margem (%)</TableHead>
+                      <TableHead className="text-right">Preço Varejo</TableHead>
+                       <TableHead className="text-right">Rentabilidade</TableHead>
                       <TableHead>Categoria</TableHead>
                       <TableHead>Fornecedor</TableHead>
                        <TableHead className="text-right">Ações</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {filteredProducts.map((product) => (
+                    {paginatedProducts.map((product) => (
                       <TableRow key={product.id} className={product.stock < lowStockThreshold ? "bg-destructive/10 hover:bg-destructive/20" : ""}>
                         <TableCell>
                           <Image 
@@ -166,7 +303,7 @@ export default function StockPage() {
                             alt={product.name} 
                             width={40} 
                             height={40} 
-                            className="rounded"
+                            className="rounded object-cover"
                             data-ai-hint="fashion product" 
                           />
                         </TableCell>
@@ -179,10 +316,11 @@ export default function StockPage() {
                         <TableCell className="text-right">{product.unitPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
                         <TableCell className="text-right">{product.markup}%</TableCell>
                         <TableCell className="text-right font-semibold">{(product.unitPrice * (1 + product.markup / 100)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
+                        <TableCell className="text-right">{product.profitability.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
                         <TableCell>{product.category}</TableCell>
                         <TableCell>{product.supplier}</TableCell>
                         <TableCell className="text-right">
-                          <Button variant="ghost" size="sm" onClick={() => alert(`Editando ${product.name}`)}>
+                          <Button variant="ghost" size="icon" onClick={() => alert(`Editando ${product.name}`)} title="Editar Produto">
                             <Edit3 className="h-4 w-4" />
                           </Button>
                         </TableCell>
@@ -193,6 +331,31 @@ export default function StockPage() {
               </div>
                {filteredProducts.length === 0 && (
                 <p className="text-center text-muted-foreground py-8">Nenhum produto corresponde aos seus filtros.</p>
+              )}
+              {filteredProducts.length > 0 && (
+                <div className="flex items-center justify-between pt-4">
+                  <p className="text-sm text-muted-foreground">
+                    Mostrando {paginatedProducts.length} de {filteredProducts.length} produtos. Página {currentPage} de {totalPages}.
+                  </p>
+                  <div className="flex gap-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                      disabled={currentPage === 1}
+                    >
+                      <ChevronLeft className="h-4 w-4 mr-1" /> Anterior
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                      disabled={currentPage === totalPages}
+                    >
+                      Próxima <ChevronRight className="h-4 w-4 ml-1" />
+                    </Button>
+                  </div>
+                </div>
               )}
             </CardContent>
           </Card>
@@ -212,6 +375,7 @@ export default function StockPage() {
                     {insights.sortedByOutput.map(p => (
                       <TableRow key={p.id}><TableCell>{p.name}</TableCell><TableCell className="text-right">{p.salesVolume}</TableCell></TableRow>
                     ))}
+                     {insights.sortedByOutput.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">Nenhum dado de venda ainda.</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -228,6 +392,7 @@ export default function StockPage() {
                     {insights.sortedByProfitability.map(p => (
                       <TableRow key={p.id}><TableCell>{p.name}</TableCell><TableCell className="text-right">{p.profitability?.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell></TableRow>
                     ))}
+                    {insights.sortedByProfitability.length === 0 && <TableRow><TableCell colSpan={2} className="text-center text-muted-foreground">Nenhum produto com rentabilidade definida.</TableCell></TableRow>}
                   </TableBody>
                 </Table>
               </CardContent>
@@ -239,7 +404,7 @@ export default function StockPage() {
               </CardHeader>
               <CardContent>
                 <Table>
-                  <TableHeader><TableRow><TableHead>Produto</TableHead><TableHead>Categoria</TableHead><TableHead className="text-right">Estoque Atual</TableHead><TableHead className="text-right">Preço Unitário</TableHead></TableRow></TableHeader>
+                  <TableHeader><TableRow><TableHead>Produto</TableHead><TableHead>Categoria</TableHead><TableHead className="text-right">Estoque Atual</TableHead><TableHead className="text-right">Preço Custo</TableHead></TableRow></TableHeader>
                   <TableBody>
                     {insights.needsReplacement.map(p => (
                       <TableRow key={p.id} className="bg-destructive/10">
@@ -296,6 +461,7 @@ export default function StockPage() {
                       className="mb-3"
                     />
                     <p className="text-sm text-muted-foreground mb-2">Novo Preço de Varejo: {(editingProduct.unitPrice * (1 + currentMarkup / 100)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
+                    <p className="text-sm text-muted-foreground mb-3">Nova Rentabilidade: {(editingProduct.unitPrice * (currentMarkup / 100)).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
                     <Button onClick={handleSaveMarkup} className="w-full">
                       <Edit3 className="mr-2 h-4 w-4" /> Salvar Margem de Lucro
                     </Button>
@@ -319,5 +485,3 @@ export default function StockPage() {
     </div>
   );
 }
-
-    
