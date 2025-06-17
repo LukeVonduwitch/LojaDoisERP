@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useMemo } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -7,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuCheckboxItem } from "@/components/ui/dropdown-menu";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { DatePickerWithRange } from "@/components/ui/date-picker-range"; // Assuming this component exists or will be created
+import { DatePickerWithRange } from "@/components/ui/date-picker-range";
 import { PackageSearch, TrendingUp, DollarSign, Filter, Edit3, AlertCircle, ArrowUpDown, CalendarDays } from "lucide-react";
 import Image from "next/image";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -67,7 +68,7 @@ export default function StockPage() {
       (!showLowStockOnly || product.stock < lowStockThreshold)
     );
   }, [products, searchTerm, categoryFilter, supplierFilter, showLowStockOnly]);
-
+  
   const insights = useMemo(() => {
     const sortedByOutput = [...products].sort((a, b) => (b.salesVolume ?? 0) - (a.salesVolume ?? 0)).slice(0, 5);
     const sortedByProfitability = [...products].sort((a, b) => (b.profitability ?? 0) - (a.profitability ?? 0)).slice(0, 5);
@@ -283,9 +284,9 @@ export default function StockPage() {
                 {editingProduct && (
                   <div className="p-4 border rounded-lg bg-muted/30">
                     <h3 className="text-lg font-semibold mb-2">Editing: {editingProduct.name}</h3>
-                    <p className="text-sm text-muted-foreground">Current Unit Price: ${editingProduct.unitPrice.toFixed(2)}</Popup_Large_text_with_rounded_corners_and_modern_design>
-                    <p className="text-sm text-muted-foreground">Current Markup: {editingProduct.markup}%</Popup_Large_text_with_rounded_corners_and_modern_design>
-                    <p className="text-sm text-muted-foreground mb-2">Current Retail Price: ${(editingProduct.unitPrice * (1 + editingProduct.markup / 100)).toFixed(2)}</Popup_Large_text_with_rounded_corners_and_modern_design>
+                    <p className="text-sm text-muted-foreground">Current Unit Price: ${editingProduct.unitPrice.toFixed(2)}</p>
+                    <p className="text-sm text-muted-foreground">Current Markup: {editingProduct.markup}%</p>
+                    <p className="text-sm text-muted-foreground mb-2">Current Retail Price: ${(editingProduct.unitPrice * (1 + editingProduct.markup / 100)).toFixed(2)}</p>
                     
                     <label htmlFor="markup" className="block text-sm font-medium mb-1">New Markup (%)</label>
                     <Input 
@@ -295,7 +296,7 @@ export default function StockPage() {
                       onChange={(e) => setCurrentMarkup(Number(e.target.value))}
                       className="mb-3"
                     />
-                    <p className="text-sm text-muted-foreground mb-2">New Retail Price: ${(editingProduct.unitPrice * (1 + currentMarkup / 100)).toFixed(2)}</Popup_Large_text_with_rounded_corners_and_modern_design>
+                    <p className="text-sm text-muted-foreground mb-2">New Retail Price: ${(editingProduct.unitPrice * (1 + currentMarkup / 100)).toFixed(2)}</p>
                     <Button onClick={handleSaveMarkup} className="w-full">
                       <Edit3 className="mr-2 h-4 w-4" /> Save Markup
                     </Button>
@@ -308,7 +309,7 @@ export default function StockPage() {
               <div className="mt-6">
                 <h3 className="text-lg font-semibold mb-2">Global Filters for Analysis</h3>
                 <div className="flex flex-col md:flex-row gap-4 items-center">
-                    <DatePickerWithRangeFallback /> {/* Placeholder for date range picker */}
+                    <DatePickerWithRangeFallback />
                     <Button variant="outline"><Filter className="mr-2 h-4 w-4" /> Apply Filters</Button>
                 </div>
               </div>
@@ -318,15 +319,4 @@ export default function StockPage() {
       </Tabs>
     </div>
   );
-}
-
-// Placeholder for DatePickerWithRange if not provided by shadcn/ui by default
-// You would typically create this in components/ui/date-picker-range.tsx
-// For now, this is just a type definition to satisfy TypeScript
-declare global {
-  namespace JSX {
-    interface IntrinsicElements {
-      'Popup_Large_text_with_rounded_corners_and_modern_design': React.DetailedHTMLProps<React.HTMLAttributes<HTMLParagraphElement>, HTMLParagraphElement>;
-    }
-  }
 }
