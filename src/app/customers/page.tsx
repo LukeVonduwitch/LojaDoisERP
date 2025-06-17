@@ -20,6 +20,12 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Calendar } from "@/components/ui/calendar";
+import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
+import { cn } from "@/lib/utils";
+
 
 interface CustomerAddress {
   street: string;
@@ -145,7 +151,7 @@ export default function CustomersPage() {
         email: currentCustomer.email || "",
         phoneNumbers: currentCustomer.phoneNumbers || [],
         cpf: currentCustomer.cpf || "",
-        birthDate: currentCustomer.birthDate || "",
+        birthDate: currentCustomer.birthDate || "", // Stored as YYYY-MM-DD
         sex: currentCustomer.sex || "",
         maritalStatus: currentCustomer.maritalStatus || "",
         clothingSize: currentCustomer.clothingSize || "",
@@ -220,17 +226,40 @@ export default function CustomersPage() {
                 <div><Label htmlFor="email">E-mail</Label><Input id="email" name="email" type="email" value={currentCustomer.email || ''} onChange={handleInputChange} /></div>
                 <div><Label htmlFor="phoneNumbers">Telefone(s) (separados por vírgula)</Label><Input id="phoneNumbers" name="phoneNumbers" value={currentCustomer.phoneNumbers?.join(', ') || ''} onChange={handlePhoneNumberChange} /></div>
                 <div><Label htmlFor="cpf">CPF</Label><Input id="cpf" name="cpf" value={currentCustomer.cpf || ''} onChange={handleInputChange} /></div>
-                <div className="relative">
+                <div>
                   <Label htmlFor="birthDate">Data de Nascimento</Label>
-                  <Input 
-                    id="birthDate" 
-                    name="birthDate" 
-                    type="date" 
-                    value={currentCustomer.birthDate || ''} 
-                    onChange={handleInputChange} 
-                    className="pr-10"
-                  />
-                  <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 mt-3 h-5 w-5 text-muted-foreground pointer-events-none" />
+                  <Popover>
+                    <PopoverTrigger asChild>
+                      <Button
+                        variant={"outline"}
+                        id="birthDate" // For the label association
+                        className={cn(
+                          "w-full justify-start text-left font-normal",
+                          !currentCustomer.birthDate && "text-muted-foreground"
+                        )}
+                      >
+                        <CalendarDays className="mr-2 h-4 w-4" />
+                        {currentCustomer.birthDate && currentCustomer.birthDate !== ''
+                          ? format(new Date(currentCustomer.birthDate + "T00:00:00"), "PPP", { locale: ptBR })
+                          : <span>Escolha uma data</span>}
+                      </Button>
+                    </PopoverTrigger>
+                    <PopoverContent className="w-auto p-0">
+                      <Calendar
+                        mode="single"
+                        selected={currentCustomer.birthDate ? new Date(currentCustomer.birthDate + "T00:00:00") : undefined}
+                        onSelect={(date) => {
+                          const newBirthDate = date ? format(date, "yyyy-MM-dd") : '';
+                          setCurrentCustomer(prev => ({ ...prev, birthDate: newBirthDate }));
+                        }}
+                        captionLayout="dropdown-buttons"
+                        fromYear={1900}
+                        toYear={new Date().getFullYear()}
+                        initialFocus
+                        locale={ptBR}
+                      />
+                    </PopoverContent>
+                  </Popover>
                 </div>
                 <div>
                   <Label htmlFor="sex">Sexo</Label>
@@ -326,7 +355,7 @@ export default function CustomersPage() {
                         </Avatar>
                         <div>
                           <div className="font-medium text-foreground">{customer.name}</div>
-                          <div className="text-xs text-muted-foreground">Entrou em: {new Date(customer.joinDate).toLocaleDateString('pt-BR')}</div>
+                          <div className="text-xs text-muted-foreground">Entrou em: {customer.joinDate ? format(new Date(customer.joinDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</div>
                         </div>
                       </div>
                     </TableCell>
@@ -335,7 +364,7 @@ export default function CustomersPage() {
                       {customer.phoneNumbers && customer.phoneNumbers.length > 0 && <div className="text-xs text-muted-foreground">{customer.phoneNumbers.join(', ')}</div>}
                     </TableCell>
                     <TableCell>{customer.cpf}</TableCell>
-                    <TableCell>{customer.lastPurchaseDate ? new Date(customer.lastPurchaseDate).toLocaleDateString('pt-BR') : 'N/A'}</TableCell>
+                    <TableCell>{customer.lastPurchaseDate ? format(new Date(customer.lastPurchaseDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</TableCell>
                     <TableCell className="text-right font-medium text-foreground">{customer.totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
@@ -390,3 +419,4 @@ export default function CustomersPage() {
     </div>
   );
 }
+
