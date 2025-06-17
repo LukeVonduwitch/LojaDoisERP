@@ -19,8 +19,6 @@ import {
   LayoutDashboard,
   Boxes,
   Users,
-  BarChart3,
-  ShoppingCart,
   Settings,
   LogOut,
   MenuIcon,
@@ -33,8 +31,6 @@ const navItems = [
   { href: '/', label: 'Painel', icon: LayoutDashboard },
   { href: '/stock', label: 'Estoque', icon: Boxes },
   { href: '/customers', label: 'Clientes', icon: Users },
-  { href: '/sales', label: 'Relatórios de Vendas', icon: BarChart3 },
-  { href: '/purchases', label: 'Compras', icon: ShoppingCart },
 ];
 
 export function AppSidebar() {
@@ -114,5 +110,3 @@ export function AppHeader() {
     </header>
   );
 }
-
-    
