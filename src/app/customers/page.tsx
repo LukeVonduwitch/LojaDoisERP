@@ -50,7 +50,7 @@ interface Customer {
   joinDate: string;
 }
 
-const initialCustomers: Customer[] = [
+export const initialCustomers: Customer[] = [
   { id: "1", name: "Alice Wonderland", email: "alice@example.com", phoneNumbers: ["555-0101"], cpf: "111.222.333-44", birthDate: "1990-05-15", sex: "Feminino", maritalStatus: "Solteiro(a)", clothingSize: "M", shoeSize: "37", address: { street: "Rua dos Sonhos", number: "123", neighborhood: "Centro", city: "Imaginação", state: "SP", zipCode: "01001-000" }, avatar: "https://placehold.co/40x40.png", lastPurchaseDate: "2023-06-15", totalSpent: 1250.75, preferences: ["Vestidos", "Vintage"], joinDate: "2022-01-10" },
   { id: "2", name: "Bob The Builder", email: "bob@example.com", phoneNumbers: ["555-0102"], cpf: "222.333.444-55", birthDate: "1985-10-20", sex: "Masculino", maritalStatus: "Casado(a)", clothingSize: "G", shoeSize: "42", address: { street: "Avenida das Ferramentas", number: "456", neighborhood: "Industrial", city: "Construção", state: "MG", zipCode: "30110-000" }, avatar: "https://placehold.co/40x40.png", lastPurchaseDate: "2023-05-20", totalSpent: 875.50, preferences: ["Roupas de Trabalho", "Jeans"], joinDate: "2022-03-05" },
 ];

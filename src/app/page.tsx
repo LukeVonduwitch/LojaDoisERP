@@ -3,15 +3,15 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users } from "lucide-react";
 import { useState, useEffect } from 'react';
+import { initialCustomers } from "./customers/page";
 
 
 export default function DashboardPage() {
   const [totalCustomers, setTotalCustomers] = useState<number | null>(null);
 
   useEffect(() => {
-    // Simulate fetching dynamic data or using a static value
-    // In a real application, you would fetch this from your customer data
-    setTotalCustomers(1230); 
+    // Use the length of the imported initialCustomers array
+    setTotalCustomers(initialCustomers.length); 
   }, []);
 
 
