@@ -1,3 +1,4 @@
+
 import type { Metadata } from 'next';
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster";
@@ -5,8 +6,8 @@ import { SidebarProvider, SidebarInset } from '@/components/ui/sidebar';
 import { AppSidebar, AppHeader } from '@/components/layout/app-navigation';
 
 export const metadata: Metadata = {
-  title: 'Vestuario ERP',
-  description: 'Manage your fashion business with Vestuario ERP',
+  title: 'Vestuário ERP',
+  description: 'Gerencie seu negócio de moda com o Vestuário ERP',
 };
 
 export default function RootLayout({
@@ -15,7 +16,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" suppressHydrationWarning>
+    <html lang="pt-BR" suppressHydrationWarning>
       <head>
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
@@ -38,3 +39,5 @@ export default function RootLayout({
     </html>
   );
 }
+
+    

@@ -1,3 +1,4 @@
+
 "use client";
 import { useState, useMemo } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -32,11 +33,11 @@ interface Customer {
 }
 
 const initialCustomers: Customer[] = [
-  { id: "1", name: "Alice Wonderland", email: "alice@example.com", phone: "555-0101", avatar: "https://placehold.co/40x40.png?text=AW", lastPurchaseDate: "2023-06-15", totalSpent: 1250.75, preferences: ["Dresses", "Vintage"], joinDate: "2022-01-10" },
-  { id: "2", name: "Bob The Builder", email: "bob@example.com", phone: "555-0102", avatar: "https://placehold.co/40x40.png?text=BB", lastPurchaseDate: "2023-05-20", totalSpent: 875.50, preferences: ["Workwear", "Denim"], joinDate: "2022-03-05" },
-  { id: "3", name: "Carol Danvers", email: "carol@example.com", phone: "555-0103", lastPurchaseDate: "2023-06-01", totalSpent: 2300.00, preferences: ["Leather", "Accessories"], joinDate: "2021-11-20" },
-  { id: "4", name: "David Copperfield", email: "david@example.com", lastPurchaseDate: "2023-04-10", totalSpent: 450.20, preferences: ["Casual", "T-Shirts"], joinDate: "2023-02-15" },
-  { id: "5", name: "Eve Harrington", email: "eve@example.com", phone: "555-0105", avatar: "https://placehold.co/40x40.png?text=EH", lastPurchaseDate: "2023-06-25", totalSpent: 175.90, preferences: ["Formal", "Silk"], joinDate: "2022-08-01" },
+  { id: "1", name: "Alice Wonderland", email: "alice@example.com", phone: "555-0101", avatar: "https://placehold.co/40x40.png?text=AW", lastPurchaseDate: "2023-06-15", totalSpent: 1250.75, preferences: ["Vestidos", "Vintage"], joinDate: "2022-01-10" },
+  { id: "2", name: "Bob The Builder", email: "bob@example.com", phone: "555-0102", avatar: "https://placehold.co/40x40.png?text=BB", lastPurchaseDate: "2023-05-20", totalSpent: 875.50, preferences: ["Roupas de Trabalho", "Jeans"], joinDate: "2022-03-05" },
+  { id: "3", name: "Carol Danvers", email: "carol@example.com", phone: "555-0103", lastPurchaseDate: "2023-06-01", totalSpent: 2300.00, preferences: ["Couro", "Acessórios"], joinDate: "2021-11-20" },
+  { id: "4", name: "David Copperfield", email: "david@example.com", lastPurchaseDate: "2023-04-10", totalSpent: 450.20, preferences: ["Casual", "Camisetas"], joinDate: "2023-02-15" },
+  { id: "5", name: "Eve Harrington", email: "eve@example.com", phone: "555-0105", avatar: "https://placehold.co/40x40.png?text=EH", lastPurchaseDate: "2023-06-25", totalSpent: 175.90, preferences: ["Formal", "Seda"], joinDate: "2022-08-01" },
 ];
 
 
@@ -46,7 +47,6 @@ export default function CustomersPage() {
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  // Form state for new/edit customer
   const [currentCustomer, setCurrentCustomer] = useState<Partial<Customer>>({ name: '', email: '', preferences: [] });
 
   const filteredCustomers = useMemo(() => {
@@ -66,9 +66,9 @@ export default function CustomersPage() {
   };
 
   const handleSubmit = () => {
-    if (editingCustomer) { // Update existing
+    if (editingCustomer) { 
       setCustomers(prev => prev.map(c => c.id === editingCustomer.id ? { ...c, ...currentCustomer } as Customer : c));
-    } else { // Add new
+    } else { 
       const newCustomer: Customer = {
         id: String(Date.now()),
         joinDate: new Date().toISOString().split('T')[0],
@@ -96,7 +96,7 @@ export default function CustomersPage() {
   };
 
   const handleDelete = (customerId: string) => {
-    if (window.confirm("Are you sure you want to delete this customer?")) {
+    if (window.confirm("Tem certeza que deseja excluir este cliente?")) {
       setCustomers(prev => prev.filter(c => c.id !== customerId));
     }
   };
@@ -105,41 +105,41 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
-        <h1 className="text-3xl font-bold font-headline text-foreground">Customer Management</h1>
+        <h1 className="text-3xl font-bold font-headline text-foreground">Gerenciamento de Clientes</h1>
         <Dialog open={isFormOpen} onOpenChange={setIsFormOpen}>
           <DialogTrigger asChild>
             <Button onClick={handleAddNew} className="min-w-max">
-              <UserPlus className="mr-2 h-4 w-4" /> Add New Customer
+              <UserPlus className="mr-2 h-4 w-4" /> Adicionar Novo Cliente
             </Button>
           </DialogTrigger>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
-              <DialogTitle>{editingCustomer ? "Edit Customer" : "Add New Customer"}</DialogTitle>
+              <DialogTitle>{editingCustomer ? "Editar Cliente" : "Adicionar Novo Cliente"}</DialogTitle>
               <DialogDescription>
-                {editingCustomer ? "Update the customer's details." : "Fill in the details for the new customer."}
+                {editingCustomer ? "Atualize os detalhes do cliente." : "Preencha os detalhes para o novo cliente."}
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4">
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="name" className="text-right">Name</Label>
+                <Label htmlFor="name" className="text-right">Nome</Label>
                 <Input id="name" name="name" value={currentCustomer.name || ''} onChange={handleInputChange} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="email" className="text-right">Email</Label>
+                <Label htmlFor="email" className="text-right">E-mail</Label>
                 <Input id="email" name="email" type="email" value={currentCustomer.email || ''} onChange={handleInputChange} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="phone" className="text-right">Phone</Label>
+                <Label htmlFor="phone" className="text-right">Telefone</Label>
                 <Input id="phone" name="phone" value={currentCustomer.phone || ''} onChange={handleInputChange} className="col-span-3" />
               </div>
               <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="preferences" className="text-right">Preferences</Label>
-                <Input id="preferences" placeholder="e.g. Dresses, Vintage" value={currentCustomer.preferences?.join(', ') || ''} onChange={handlePreferencesChange} className="col-span-3" />
+                <Label htmlFor="preferences" className="text-right">Preferências</Label>
+                <Input id="preferences" placeholder="ex: Vestidos, Vintage" value={currentCustomer.preferences?.join(', ') || ''} onChange={handlePreferencesChange} className="col-span-3" />
               </div>
             </div>
             <DialogFooter>
-              <DialogClose asChild><Button variant="outline">Cancel</Button></DialogClose>
-              <Button onClick={handleSubmit}>Save Customer</Button>
+              <DialogClose asChild><Button variant="outline">Cancelar</Button></DialogClose>
+              <Button onClick={handleSubmit}>Salvar Cliente</Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
@@ -147,11 +147,11 @@ export default function CustomersPage() {
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Customer Database</CardTitle>
-          <CardDescription>Manage customer information, purchase history, and preferences.</CardDescription>
+          <CardTitle>Banco de Dados de Clientes</CardTitle>
+          <CardDescription>Gerencie informações de clientes, histórico de compras e preferências.</CardDescription>
           <div className="mt-4">
             <Input
-              placeholder="Search customers by name or email..."
+              placeholder="Buscar clientes por nome ou e-mail..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               className="max-w-md"
@@ -164,12 +164,12 @@ export default function CustomersPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Customer</TableHead>
-                  <TableHead>Contact</TableHead>
-                  <TableHead className="cursor-pointer hover:bg-muted/50"><ArrowUpDown className="inline-block mr-1 h-4 w-4" />Last Purchase</TableHead>
-                  <TableHead className="text-right cursor-pointer hover:bg-muted/50"><ArrowUpDown className="inline-block mr-1 h-4 w-4" />Total Spent</TableHead>
-                  <TableHead>Preferences</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
+                  <TableHead>Cliente</TableHead>
+                  <TableHead>Contato</TableHead>
+                  <TableHead className="cursor-pointer hover:bg-muted/50"><ArrowUpDown className="inline-block mr-1 h-4 w-4" />Última Compra</TableHead>
+                  <TableHead className="text-right cursor-pointer hover:bg-muted/50"><ArrowUpDown className="inline-block mr-1 h-4 w-4" />Total Gasto</TableHead>
+                  <TableHead>Preferências</TableHead>
+                  <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -183,7 +183,7 @@ export default function CustomersPage() {
                         </Avatar>
                         <div>
                           <div className="font-medium text-foreground">{customer.name}</div>
-                          <div className="text-xs text-muted-foreground">Joined: {new Date(customer.joinDate).toLocaleDateString()}</div>
+                          <div className="text-xs text-muted-foreground">Entrou em: {new Date(customer.joinDate).toLocaleDateString('pt-BR')}</div>
                         </div>
                       </div>
                     </TableCell>
@@ -191,8 +191,8 @@ export default function CustomersPage() {
                       <div className="text-sm text-foreground">{customer.email}</div>
                       {customer.phone && <div className="text-xs text-muted-foreground">{customer.phone}</div>}
                     </TableCell>
-                    <TableCell>{customer.lastPurchaseDate ? new Date(customer.lastPurchaseDate).toLocaleDateString() : 'N/A'}</TableCell>
-                    <TableCell className="text-right font-medium text-foreground">${customer.totalSpent.toFixed(2)}</TableCell>
+                    <TableCell>{customer.lastPurchaseDate ? new Date(customer.lastPurchaseDate).toLocaleDateString('pt-BR') : 'N/A'}</TableCell>
+                    <TableCell className="text-right font-medium text-foreground">{customer.totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
                     <TableCell>
                       <div className="flex flex-wrap gap-1">
                         {customer.preferences.map(pref => <Badge key={pref} variant="secondary">{pref}</Badge>)}
@@ -201,11 +201,11 @@ export default function CustomersPage() {
                     <TableCell className="text-right">
                       <Button variant="ghost" size="icon" onClick={() => handleEdit(customer)}>
                         <Edit className="h-4 w-4" />
-                        <span className="sr-only">Edit</span>
+                        <span className="sr-only">Editar</span>
                       </Button>
                       <Button variant="ghost" size="icon" onClick={() => handleDelete(customer.id)} className="text-destructive hover:text-destructive/80">
                         <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Delete</span>
+                        <span className="sr-only">Excluir</span>
                       </Button>
                     </TableCell>
                   </TableRow>
@@ -214,10 +214,12 @@ export default function CustomersPage() {
             </Table>
           </div>
           {filteredCustomers.length === 0 && (
-            <p className="text-center text-muted-foreground py-8">No customers found.</p>
+            <p className="text-center text-muted-foreground py-8">Nenhum cliente encontrado.</p>
           )}
         </CardContent>
       </Card>
     </div>
   );
 }
+
+    

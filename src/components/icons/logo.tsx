@@ -1,3 +1,4 @@
+
 import type { SVGProps } from 'react';
 
 export function VestuarioLogo(props: SVGProps<SVGSVGElement>) {
@@ -5,7 +6,7 @@ export function VestuarioLogo(props: SVGProps<SVGSVGElement>) {
     <svg
       xmlns="http://www.w3.org/2000/svg"
       viewBox="0 0 200 50"
-      aria-label="Vestuario ERP Logo"
+      aria-label="Vestuário ERP Logo"
       {...props}
     >
       <text
@@ -16,7 +17,7 @@ export function VestuarioLogo(props: SVGProps<SVGSVGElement>) {
         fontWeight="bold"
         fill="hsl(var(--primary))"
       >
-        Vestuario
+        Vestuário
       </text>
       <text
         x="135"
@@ -31,3 +32,5 @@ export function VestuarioLogo(props: SVGProps<SVGSVGElement>) {
     </svg>
   );
 }
+
+    

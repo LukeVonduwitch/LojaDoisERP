@@ -1,7 +1,9 @@
+
 "use client"
 
 import * as React from "react"
 import { format } from "date-fns"
+import { ptBR } from "date-fns/locale" // Import ptBR locale
 import { Calendar as CalendarIcon } from "lucide-react"
 import type { DateRange } from "react-day-picker"
 
@@ -49,14 +51,14 @@ export function DatePickerWithRange({
             {date?.from ? (
               date.to ? (
                 <>
-                  {format(date.from, "LLL dd, y")} -{" "}
-                  {format(date.to, "LLL dd, y")}
+                  {format(date.from, "LLL dd, y", { locale: ptBR })} -{" "}
+                  {format(date.to, "LLL dd, y", { locale: ptBR })}
                 </>
               ) : (
-                format(date.from, "LLL dd, y")
+                format(date.from, "LLL dd, y", { locale: ptBR })
               )
             ) : (
-              <span>Pick a date range</span>
+              <span>Escolha um intervalo de datas</span>
             )}
           </Button>
         </PopoverTrigger>
@@ -68,9 +70,12 @@ export function DatePickerWithRange({
             selected={date}
             onSelect={handleSelect}
             numberOfMonths={2}
+            locale={ptBR} // Pass ptBR locale to Calendar
           />
         </PopoverContent>
       </Popover>
     </div>
   )
 }
+
+    

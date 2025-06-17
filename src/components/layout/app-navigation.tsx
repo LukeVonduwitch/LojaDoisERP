@@ -1,3 +1,4 @@
+
 "use client";
 
 import Link from 'next/link';
@@ -26,14 +27,14 @@ import {
 } from 'lucide-react';
 import { VestuarioLogo } from '@/components/icons/logo';
 import { cn } from '@/lib/utils';
-import { useSidebar } from '@/components/ui/sidebar'; // Import useSidebar
+import { useSidebar } from '@/components/ui/sidebar';
 
 const navItems = [
-  { href: '/', label: 'Dashboard', icon: LayoutDashboard },
-  { href: '/stock', label: 'Stock', icon: Boxes },
-  { href: '/customers', label: 'Customers', icon: Users },
-  { href: '/sales', label: 'Sales Reporting', icon: BarChart3 },
-  { href: '/purchases', label: 'Purchases', icon: ShoppingCart },
+  { href: '/', label: 'Painel', icon: LayoutDashboard },
+  { href: '/stock', label: 'Estoque', icon: Boxes },
+  { href: '/customers', label: 'Clientes', icon: Users },
+  { href: '/sales', label: 'Relatórios de Vendas', icon: BarChart3 },
+  { href: '/purchases', label: 'Compras', icon: ShoppingCart },
 ];
 
 export function AppSidebar() {
@@ -71,18 +72,18 @@ export function AppSidebar() {
       <SidebarFooter className="p-2 border-t">
         <SidebarMenu>
             <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={{ children: "Settings", side: 'right', className: 'ml-2' }}>
+                <SidebarMenuButton asChild tooltip={{ children: "Configurações", side: 'right', className: 'ml-2' }}>
                     <Link href="/settings">
                         <Settings />
-                        <span>Settings</span>
+                        <span>Configurações</span>
                     </Link>
                 </SidebarMenuButton>
             </SidebarMenuItem>
             <SidebarMenuItem>
-                 <SidebarMenuButton variant="outline" asChild tooltip={{ children: "Logout", side: 'right', className: 'ml-2' }}>
-                    <button type="button" onClick={() => alert("Logout clicked")}> {/* Placeholder action */}
+                 <SidebarMenuButton variant="outline" asChild tooltip={{ children: "Sair", side: 'right', className: 'ml-2' }}>
+                    <button type="button" onClick={() => alert("Sair clicado")}>
                         <LogOut />
-                        <span>Logout</span>
+                        <span>Sair</span>
                     </button>
                 </SidebarMenuButton>
             </SidebarMenuItem>
@@ -99,18 +100,19 @@ export function AppHeader() {
        {isMobile && (
         <Button variant="ghost" size="icon" onClick={toggleSidebar} className="md:hidden">
           <MenuIcon className="h-6 w-6" />
-          <span className="sr-only">Toggle Menu</span>
+          <span className="sr-only">Alternar Menu</span>
         </Button>
       )}
       <div className="flex-1">
         <h1 className="text-lg font-semibold md:text-xl font-headline">
-          {/* Dynamic title can be set here via context or props */}
         </h1>
       </div>
       <Avatar>
-        <AvatarImage src="https://placehold.co/40x40.png" alt="User Avatar" data-ai-hint="user avatar" />
+        <AvatarImage src="https://placehold.co/40x40.png" alt="Avatar do Usuário" data-ai-hint="user avatar" />
         <AvatarFallback>JD</AvatarFallback>
       </Avatar>
     </header>
   );
 }
+
+    

@@ -1,3 +1,4 @@
+
 "use client";
 import { useState } from "react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
@@ -37,21 +38,20 @@ export default function PurchasesPage() {
   const [activeTab, setActiveTab] = useState("place-order");
   const [currentOrder, setCurrentOrder] = useState<PurchaseOrder>({ supplier: "", items: [] });
   const [xmlFile, setXmlFile] = useState<File | null>(null);
-  const [reconciliationItems, setReconciliationItems] = useState<any[]>([]); // Placeholder
+  const [reconciliationItems, setReconciliationItems] = useState<any[]>([]); 
   const [productForGrid, setProductForGrid] = useState<string | undefined>(undefined);
   const [productGrid, setProductGrid] = useState<ProductGridItem[]>([]);
-  const [productImages, setProductImages] = useState<string[]>([]); // URLs or base64
+  const [productImages, setProductImages] = useState<string[]>([]); 
   const [defectDescription, setDefectDescription] = useState("");
 
-  const suppliers = ["Supplier Alpha", "Supplier Beta", "Supplier Gamma"];
+  const suppliers = ["Fornecedor Alfa", "Fornecedor Beta", "Fornecedor Gama"];
   const products = [
-    { id: "P001", name: "Men's Classic T-Shirt", price: 10.50 },
-    { id: "P002", name: "Women's Skinny Jeans", price: 25.00 },
-    { id: "P003", name: "Unisex Hoodie", price: 30.75 },
+    { id: "P001", name: "Camiseta Clássica Masculina", price: 10.50 },
+    { id: "P002", name: "Calça Jeans Skinny Feminina", price: 25.00 },
+    { id: "P003", name: "Moletom Unissex", price: 30.75 },
   ];
 
   const handleAddItemToOrder = () => {
-    // For simplicity, adding a fixed item. In reality, you'd select a product.
     const newItem: OrderItem = {
       id: String(Date.now()),
       productId: products[0].id,
@@ -77,31 +77,29 @@ export default function PurchasesPage() {
   };
 
   const handlePlaceOrder = () => {
-    alert(`Order placed with ${currentOrder.supplier} for ${currentOrder.items.length} item types.`);
-    // Reset form or send to backend
+    alert(`Pedido feito com ${currentOrder.supplier} para ${currentOrder.items.length} tipos de item.`);
     setCurrentOrder({ supplier: "", items: [] });
   };
 
   const handleXmlImport = (event: React.ChangeEvent<HTMLInputElement>) => {
     if (event.target.files && event.target.files[0]) {
       setXmlFile(event.target.files[0]);
-      // Simulate processing
       setReconciliationItems([
-        { id: "INV001", product: "Men's Classic T-Shirt", qtyOrdered: 50, qtyReceived: 48, priceExpected: 10.50, priceActual: 10.50, match: false },
-        { id: "INV002", product: "Women's Skinny Jeans", qtyOrdered: 30, qtyReceived: 30, priceExpected: 25.00, priceActual: 25.00, match: true },
+        { id: "INV001", product: "Camiseta Clássica Masculina", qtyOrdered: 50, qtyReceived: 48, priceExpected: 10.50, priceActual: 10.50, match: false },
+        { id: "INV002", product: "Calça Jeans Skinny Feminina", qtyOrdered: 30, qtyReceived: 30, priceExpected: 25.00, priceActual: 25.00, match: true },
       ]);
     }
   };
 
   const handleProductGridGenerate = () => {
     if (productForGrid) {
-      // Dummy grid generation
-      const sizes = ["S", "M", "L"];
-      const colors = ["Black", "White"];
+      const selectedProductName = products.find(p => p.id === productForGrid)?.name || "Produto";
+      const sizes = ["P", "M", "G"];
+      const colors = ["Preto", "Branco"];
       const grid: ProductGridItem[] = [];
       sizes.forEach(size => {
         colors.forEach(color => {
-          grid.push({ size, color, sku: `${productForGrid}-${size}-${color.substring(0,2)}`, stock: 0 });
+          grid.push({ size, color, sku: `${selectedProductName.substring(0,3).toUpperCase()}-${size}-${color.substring(0,2).toUpperCase()}`, stock: 0 });
         });
       });
       setProductGrid(grid);
@@ -113,41 +111,39 @@ export default function PurchasesPage() {
       const filesArray = Array.from(event.target.files);
       const newImageUrls = filesArray.map(file => URL.createObjectURL(file));
       setProductImages(prev => [...prev, ...newImageUrls]);
-       // In a real app, upload to a server and store URLs
     }
   };
-
 
   const orderTotal = currentOrder.items.reduce((sum, item) => sum + (item.quantity * item.unitPrice), 0);
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold font-headline text-foreground">Purchase Management</h1>
+      <h1 className="text-3xl font-bold font-headline text-foreground">Gerenciamento de Compras</h1>
 
       <Tabs defaultValue="place-order" onValueChange={setActiveTab} className="w-full">
         <TabsList className="grid w-full grid-cols-1 md:grid-cols-3 gap-2 mb-6">
           <TabsTrigger value="place-order" className="text-sm py-2.5">
-            <ShoppingBag className="mr-2 h-4 w-4" /> Place Order
+            <ShoppingBag className="mr-2 h-4 w-4" /> Fazer Pedido
           </TabsTrigger>
           <TabsTrigger value="reconcile-invoice" className="text-sm py-2.5">
-            <FileText className="mr-2 h-4 w-4" /> Reconcile Invoice
+            <FileText className="mr-2 h-4 w-4" /> Reconciliar Fatura
           </TabsTrigger>
           <TabsTrigger value="product-setup" className="text-sm py-2.5">
-            <Settings2 className="mr-2 h-4 w-4" /> Product Setup
+            <Settings2 className="mr-2 h-4 w-4" /> Configuração de Produto
           </TabsTrigger>
         </TabsList>
 
         <TabsContent value="place-order">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Create New Purchase Order</CardTitle>
-              <CardDescription>Select supplier and add items to your purchase order.</CardDescription>
+              <CardTitle>Criar Novo Pedido de Compra</CardTitle>
+              <CardDescription>Selecione o fornecedor e adicione itens ao seu pedido de compra.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6">
               <div>
-                <Label htmlFor="supplier">Supplier</Label>
+                <Label htmlFor="supplier">Fornecedor</Label>
                 <Select value={currentOrder.supplier} onValueChange={(value) => setCurrentOrder(prev => ({...prev, supplier: value}))}>
-                  <SelectTrigger id="supplier"><SelectValue placeholder="Select a supplier" /></SelectTrigger>
+                  <SelectTrigger id="supplier"><SelectValue placeholder="Selecione um fornecedor" /></SelectTrigger>
                   <SelectContent>
                     {suppliers.map(s => <SelectItem key={s} value={s}>{s}</SelectItem>)}
                   </SelectContent>
@@ -155,12 +151,12 @@ export default function PurchasesPage() {
               </div>
 
               <div>
-                <h3 className="text-lg font-semibold mb-2">Order Items</h3>
-                {currentOrder.items.length === 0 && <p className="text-muted-foreground">No items added yet.</p>}
+                <h3 className="text-lg font-semibold mb-2">Itens do Pedido</h3>
+                {currentOrder.items.length === 0 && <p className="text-muted-foreground">Nenhum item adicionado ainda.</p>}
                 <div className="space-y-2">
                   {currentOrder.items.map(item => (
                     <div key={item.id} className="flex items-center gap-2 p-2 border rounded-md bg-muted/20">
-                      <span className="flex-1">{item.productName} (${item.unitPrice.toFixed(2)})</span>
+                      <span className="flex-1">{item.productName} ({item.unitPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })})</span>
                       <Input 
                         type="number" 
                         value={item.quantity} 
@@ -168,7 +164,7 @@ export default function PurchasesPage() {
                         className="w-20 text-center" 
                         min="0"
                       />
-                      <span>x ${item.unitPrice.toFixed(2)} = ${(item.quantity * item.unitPrice).toFixed(2)}</span>
+                      <span>x {item.unitPrice.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })} = {(item.quantity * item.unitPrice).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</span>
                       <Button variant="ghost" size="icon" onClick={() => handleRemoveItemFromOrder(item.id)} className="text-destructive">
                         <MinusCircle className="h-4 w-4" />
                       </Button>
@@ -176,20 +172,20 @@ export default function PurchasesPage() {
                   ))}
                 </div>
                 <Button onClick={handleAddItemToOrder} variant="outline" className="mt-2">
-                  <PlusCircle className="mr-2 h-4 w-4" /> Add Product (Placeholder)
+                  <PlusCircle className="mr-2 h-4 w-4" /> Adicionar Produto (Espaço Reservado)
                 </Button>
               </div>
 
               <div className="text-right">
-                <p className="text-xl font-bold">Total: ${orderTotal.toFixed(2)}</p>
+                <p className="text-xl font-bold">Total: {orderTotal.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</p>
               </div>
 
               <div>
-                <Label htmlFor="notes">Notes (Optional)</Label>
-                <Textarea id="notes" placeholder="Any special instructions for this order..." value={currentOrder.notes || ''} onChange={(e) => setCurrentOrder(prev => ({ ...prev, notes: e.target.value }))} />
+                <Label htmlFor="notes">Observações (Opcional)</Label>
+                <Textarea id="notes" placeholder="Quaisquer instruções especiais para este pedido..." value={currentOrder.notes || ''} onChange={(e) => setCurrentOrder(prev => ({ ...prev, notes: e.target.value }))} />
               </div>
               <Button onClick={handlePlaceOrder} size="lg" className="w-full md:w-auto" disabled={!currentOrder.supplier || currentOrder.items.length === 0}>
-                <ShoppingBag className="mr-2 h-5 w-5" /> Place Order
+                <ShoppingBag className="mr-2 h-5 w-5" /> Fazer Pedido
               </Button>
             </CardContent>
           </Card>
@@ -198,30 +194,30 @@ export default function PurchasesPage() {
         <TabsContent value="reconcile-invoice">
           <Card className="shadow-lg">
             <CardHeader>
-              <CardTitle>Import Supplier Invoice (XML)</CardTitle>
-              <CardDescription>Upload the XML invoice from your supplier to reconcile items.</CardDescription>
+              <CardTitle>Importar Fatura do Fornecedor (XML)</CardTitle>
+              <CardDescription>Faça o upload da fatura XML do seu fornecedor para reconciliar os itens.</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex flex-col items-center justify-center p-6 border-2 border-dashed rounded-lg hover:border-primary transition-colors">
                 <UploadCloud className="h-12 w-12 text-muted-foreground mb-2" />
                 <Label htmlFor="xml-upload" className="cursor-pointer text-primary font-medium">
-                  {xmlFile ? `Selected: ${xmlFile.name}` : "Click to upload XML file"}
+                  {xmlFile ? `Selecionado: ${xmlFile.name}` : "Clique para carregar arquivo XML"}
                 </Label>
                 <Input id="xml-upload" type="file" accept=".xml" onChange={handleXmlImport} className="hidden" />
-                <p className="text-xs text-muted-foreground mt-1">Only .xml files are accepted.</p>
+                <p className="text-xs text-muted-foreground mt-1">Apenas arquivos .xml são aceitos.</p>
               </div>
               {reconciliationItems.length > 0 && (
                 <div>
-                  <h3 className="text-lg font-semibold mb-2">Reconciliation Details</h3>
+                  <h3 className="text-lg font-semibold mb-2">Detalhes da Reconciliação</h3>
                   <Table>
                     <TableHeader>
                       <TableRow>
-                        <TableHead>Product</TableHead>
-                        <TableHead className="text-center">Ordered</TableHead>
-                        <TableHead className="text-center">Received</TableHead>
-                        <TableHead className="text-right">Price Expected</TableHead>
-                        <TableHead className="text-right">Price Actual</TableHead>
-                        <TableHead className="text-center">Match</TableHead>
+                        <TableHead>Produto</TableHead>
+                        <TableHead className="text-center">Pedido</TableHead>
+                        <TableHead className="text-center">Recebido</TableHead>
+                        <TableHead className="text-right">Preço Esperado</TableHead>
+                        <TableHead className="text-right">Preço Real</TableHead>
+                        <TableHead className="text-center">Corresponde</TableHead>
                       </TableRow>
                     </TableHeader>
                     <TableBody>
@@ -230,8 +226,8 @@ export default function PurchasesPage() {
                           <TableCell>{item.product}</TableCell>
                           <TableCell className="text-center">{item.qtyOrdered}</TableCell>
                           <TableCell className="text-center">{item.qtyReceived}</TableCell>
-                          <TableCell className="text-right">${item.priceExpected.toFixed(2)}</TableCell>
-                          <TableCell className="text-right">${item.priceActual.toFixed(2)}</TableCell>
+                          <TableCell className="text-right">{item.priceExpected.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
+                          <TableCell className="text-right">{item.priceActual.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
                           <TableCell className="text-center">
                             {item.match ? <Checkbox checked disabled /> : <Checkbox disabled />}
                           </TableCell>
@@ -249,21 +245,21 @@ export default function PurchasesPage() {
           <div className="grid lg:grid-cols-2 gap-6">
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>Product Grid Setup</CardTitle>
-                <CardDescription>Create grids by sizes and numbering for products automatically.</CardDescription>
+                <CardTitle>Configuração da Grade de Produtos</CardTitle>
+                <CardDescription>Crie grades por tamanhos e numeração para produtos automaticamente.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Select onValueChange={setProductForGrid}>
-                  <SelectTrigger><SelectValue placeholder="Select a product for grid setup" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Selecione um produto para configurar a grade" /></SelectTrigger>
                   <SelectContent>
                     {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Button onClick={handleProductGridGenerate} disabled={!productForGrid}>Generate Grid</Button>
+                <Button onClick={handleProductGridGenerate} disabled={!productForGrid}>Gerar Grade</Button>
                 {productGrid.length > 0 && (
                   <div className="mt-4 max-h-60 overflow-y-auto">
                     <Table>
-                      <TableHeader><TableRow><TableHead>Size</TableHead><TableHead>Color</TableHead><TableHead>SKU</TableHead><TableHead>Stock</TableHead></TableRow></TableHeader>
+                      <TableHeader><TableRow><TableHead>Tamanho</TableHead><TableHead>Cor</TableHead><TableHead>SKU</TableHead><TableHead>Estoque</TableHead></TableRow></TableHeader>
                       <TableBody>
                         {productGrid.map(item => (
                           <TableRow key={item.sku}>
@@ -280,19 +276,19 @@ export default function PurchasesPage() {
 
             <Card className="shadow-lg">
               <CardHeader>
-                <CardTitle>Manage Product Images</CardTitle>
-                <CardDescription>Add images for your products.</CardDescription>
+                <CardTitle>Gerenciar Imagens de Produtos</CardTitle>
+                <CardDescription>Adicione imagens para seus produtos.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex flex-col items-center justify-center p-4 border-2 border-dashed rounded-lg">
                     <ImagePlus className="h-10 w-10 text-muted-foreground mb-2" />
-                    <Label htmlFor="image-upload" className="cursor-pointer text-primary font-medium">Click to upload images</Label>
+                    <Label htmlFor="image-upload" className="cursor-pointer text-primary font-medium">Clique para carregar imagens</Label>
                     <Input id="image-upload" type="file" accept="image/*" multiple onChange={handleImageUpload} className="hidden" />
                 </div>
                 {productImages.length > 0 && (
                     <div className="grid grid-cols-3 gap-2 mt-2">
                         {productImages.map((url, index) => (
-                            <Image key={index} src={url} alt={`Product image ${index+1}`} width={100} height={100} className="rounded object-cover aspect-square" data-ai-hint="product clothing" />
+                            <Image key={index} src={url} alt={`Imagem do produto ${index+1}`} width={100} height={100} className="rounded object-cover aspect-square" data-ai-hint="product clothing" />
                         ))}
                     </div>
                 )}
@@ -301,18 +297,18 @@ export default function PurchasesPage() {
 
             <Card className="lg:col-span-2 shadow-lg">
               <CardHeader>
-                <CardTitle className="text-destructive flex items-center gap-2"><AlertTriangle /> Defect Release</CardTitle>
-                <CardDescription>Report and manage defective items to return to the supplier.</CardDescription>
+                <CardTitle className="text-destructive flex items-center gap-2"><AlertTriangle /> Liberação de Defeito</CardTitle>
+                <CardDescription>Relate e gerencie itens defeituosos para devolver ao fornecedor.</CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
                 <Select>
-                  <SelectTrigger><SelectValue placeholder="Select product with defect" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Selecione o produto com defeito" /></SelectTrigger>
                   <SelectContent>
                     {products.map(p => <SelectItem key={p.id} value={p.id}>{p.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
-                <Textarea placeholder="Describe the defect..." value={defectDescription} onChange={(e) => setDefectDescription(e.target.value)} />
-                <Button variant="destructive" disabled={!defectDescription}>Submit Defect Report</Button>
+                <Textarea placeholder="Descreva o defeito..." value={defectDescription} onChange={(e) => setDefectDescription(e.target.value)} />
+                <Button variant="destructive" disabled={!defectDescription}>Enviar Relatório de Defeito</Button>
               </CardContent>
             </Card>
           </div>
@@ -321,3 +317,5 @@ export default function PurchasesPage() {
     </div>
   );
 }
+
+    
