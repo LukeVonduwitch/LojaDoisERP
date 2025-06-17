@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Edit, Trash2, Search, ArrowUpDown, ChevronLeft, ChevronRight } from "lucide-react";
+import { UserPlus, Edit, Trash2, Search, ArrowUpDown, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
@@ -220,7 +220,18 @@ export default function CustomersPage() {
                 <div><Label htmlFor="email">E-mail</Label><Input id="email" name="email" type="email" value={currentCustomer.email || ''} onChange={handleInputChange} /></div>
                 <div><Label htmlFor="phoneNumbers">Telefone(s) (separados por vírgula)</Label><Input id="phoneNumbers" name="phoneNumbers" value={currentCustomer.phoneNumbers?.join(', ') || ''} onChange={handlePhoneNumberChange} /></div>
                 <div><Label htmlFor="cpf">CPF</Label><Input id="cpf" name="cpf" value={currentCustomer.cpf || ''} onChange={handleInputChange} /></div>
-                <div><Label htmlFor="birthDate">Data de Nascimento</Label><Input id="birthDate" name="birthDate" type="date" value={currentCustomer.birthDate || ''} onChange={handleInputChange} /></div>
+                <div className="relative">
+                  <Label htmlFor="birthDate">Data de Nascimento</Label>
+                  <Input 
+                    id="birthDate" 
+                    name="birthDate" 
+                    type="date" 
+                    value={currentCustomer.birthDate || ''} 
+                    onChange={handleInputChange} 
+                    className="pr-10"
+                  />
+                  <CalendarDays className="absolute right-3 top-1/2 -translate-y-1/2 mt-3 h-5 w-5 text-muted-foreground pointer-events-none" />
+                </div>
                 <div>
                   <Label htmlFor="sex">Sexo</Label>
                   <Select value={currentCustomer.sex || ''} onValueChange={(value) => handleSelectChange('sex', value)}>
@@ -379,6 +390,3 @@ export default function CustomersPage() {
     </div>
   );
 }
-
-
-    
