@@ -187,12 +187,29 @@ export default function ClientesPage() {
     fetchCustomers();
   }, []);
 
+  const displayDate = (dateString: string) => {
+    const date = safeParseDate(dateString);
+    return date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : 'N/A';
+  };
+
   // Memoized calculations for performance
   const filteredCustomers = useMemo(() => {
-    return customers.filter(customer =>
-      customer.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      customer.email.toLowerCase().includes(searchTerm.toLowerCase())
-    );
+    const lowercasedFilter = searchTerm.toLowerCase();
+    if (!lowercasedFilter) return customers;
+    
+    const numericFilter = lowercasedFilter.replace(/[^\d]/g, '');
+
+    return customers.filter(customer => {
+      const birthDateFormatted = displayDate(customer.birthDate).toLowerCase();
+      
+      return (
+        customer.name.toLowerCase().includes(lowercasedFilter) ||
+        customer.email.toLowerCase().includes(lowercasedFilter) ||
+        (numericFilter && customer.cpf.replace(/[^\d]/g, '').includes(numericFilter)) ||
+        (numericFilter && customer.phoneNumbers.some(phone => phone.replace(/[^\d]/g, '').includes(numericFilter))) ||
+        birthDateFormatted.includes(lowercasedFilter)
+      );
+    });
   }, [customers, searchTerm]);
 
   const totalPages = Math.ceil(filteredCustomers.length / ITEMS_PER_PAGE);
@@ -254,7 +271,7 @@ export default function ClientesPage() {
       'ID': customer.id,
       'NOME': customer.name,
       'EMAIL': customer.email,
-      'TELEFONES': customer.phoneNumbers?.join(', '),
+      'TELEFONES': customer.phoneNumbers?.map(p => p.trim()).filter(Boolean).join(', '),
       'CPF': customer.cpf,
       'NASCIMENTO': customer.birthDate || '', // Should be yyyy-MM-dd
       'SEXO': customer.sex,
@@ -370,11 +387,6 @@ export default function ClientesPage() {
     </TableRow>
   );
 
-  const displayDate = (dateString: string) => {
-    const date = safeParseDate(dateString);
-    return date ? format(date, "dd/MM/yyyy", { locale: ptBR }) : 'N/A';
-  };
-  
   // Component JSX
   return (
     <div className="space-y-6">
@@ -435,7 +447,7 @@ export default function ClientesPage() {
         <CardHeader>
           <CardTitle>Banco de Dados de Clientes</CardTitle>
           <CardDescription>Gerencie informações de clientes, histórico de compras e preferências.</CardDescription>
-          <div className="mt-4"><Input placeholder="Buscar clientes por nome ou e-mail..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="max-w-md" /></div>
+          <div className="mt-4"><Input placeholder="Buscar por nome, e-mail, CPF, telefone ou data..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="max-w-md" /></div>
         </CardHeader>
         <CardContent>
           <div className="overflow-x-auto">
