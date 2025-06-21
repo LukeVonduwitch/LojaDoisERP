@@ -3,15 +3,28 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users } from "lucide-react";
 import { useState, useEffect } from 'react';
-import { initialCustomers } from "./customers/page";
 
+const API_URL = 'https://sheetdb.io/api/v1/z1jkiua66i9yk/count';
 
 export default function DashboardPage() {
   const [totalCustomers, setTotalCustomers] = useState<number | null>(null);
 
   useEffect(() => {
-    // Use the length of the imported initialCustomers array
-    setTotalCustomers(initialCustomers.length); 
+    const fetchCustomerCount = async () => {
+      try {
+        const response = await fetch(API_URL);
+        if (!response.ok) {
+          throw new Error('Failed to fetch customer count');
+        }
+        const data = await response.json();
+        setTotalCustomers(data.rows);
+      } catch (error) {
+        console.error(error);
+        setTotalCustomers(0); // Fallback on error
+      }
+    };
+
+    fetchCustomerCount();
   }, []);
 
 

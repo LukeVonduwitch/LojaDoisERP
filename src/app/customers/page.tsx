@@ -6,7 +6,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { UserPlus, Edit, Trash2, Search, ArrowUpDown, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
+import { UserPlus, Edit, Trash2, ArrowUpDown, ChevronLeft, ChevronRight, CalendarDays } from "lucide-react";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import {
   Dialog,
@@ -25,6 +25,8 @@ import { Calendar } from "@/components/ui/calendar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { cn } from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
+import { Skeleton } from "@/components/ui/skeleton";
 
 
 interface CustomerAddress {
@@ -56,30 +58,73 @@ interface Customer {
   joinDate: string;
 }
 
-export const initialCustomers: Customer[] = [
-  { id: "1", name: "Alice Wonderland", email: "alice@example.com", phoneNumbers: ["555-0101"], cpf: "111.222.333-44", birthDate: "1990-05-15", sex: "Feminino", maritalStatus: "Solteiro(a)", clothingSize: "M", shoeSize: "37", address: { street: "Rua dos Sonhos", number: "123", neighborhood: "Centro", city: "Imaginação", state: "SP", zipCode: "01001-000" }, avatar: "https://placehold.co/40x40.png", lastPurchaseDate: "2023-06-15", totalSpent: 1250.75, preferences: ["Vestidos", "Vintage"], joinDate: "2022-01-10" },
-  { id: "2", name: "Bob The Builder", email: "bob@example.com", phoneNumbers: ["555-0102"], cpf: "222.333.444-55", birthDate: "1985-10-20", sex: "Masculino", maritalStatus: "Casado(a)", clothingSize: "G", shoeSize: "42", address: { street: "Avenida das Ferramentas", number: "456", neighborhood: "Industrial", city: "Construção", state: "MG", zipCode: "30110-000" }, avatar: "https://placehold.co/40x40.png", lastPurchaseDate: "2023-05-20", totalSpent: 875.50, preferences: ["Roupas de Trabalho", "Jeans"], joinDate: "2022-03-05" },
-];
-
+const API_URL = 'https://sheetdb.io/api/v1/z1jkiua66i9yk';
 const ITEMS_PER_PAGE = 10;
-
 const sexOptions = ["Feminino", "Masculino", "Outro", "Prefiro não informar"];
 const maritalStatusOptions = ["Solteiro(a)", "Casado(a)", "União Estável", "Divorciado(a)", "Viúvo(a)", "Prefiro não informar"];
 const brazilianStates = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
 
 
 export default function CustomersPage() {
-  const [customers, setCustomers] = useState<Customer[]>(initialCustomers);
+  const [customers, setCustomers] = useState<Customer[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingCustomer, setEditingCustomer] = useState<Customer | null>(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
+  const { toast } = useToast();
 
   const initialFormState: Partial<Customer> = {
     name: '', email: '', preferences: [], phoneNumbers: [], cpf: '', birthDate: '', sex: '', maritalStatus: '', clothingSize: '', shoeSize: '',
     address: { street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zipCode: '' }
   };
   const [currentCustomer, setCurrentCustomer] = useState<Partial<Customer>>(initialFormState);
+
+  const fetchCustomers = async () => {
+    setIsLoading(true);
+    try {
+      const response = await fetch(API_URL);
+      if (!response.ok) throw new Error('Falha ao buscar clientes.');
+      const data = await response.json();
+      
+      const parsedCustomers: Customer[] = data.map((item: any) => ({
+        id: item.id || item.cpf,
+        name: item.name || '',
+        email: item.email || '',
+        phoneNumbers: item.phone_numbers ? item.phone_numbers.split(',').map((p:string) => p.trim()) : [],
+        cpf: item.cpf || '',
+        birthDate: item.birth_date || '',
+        sex: item.sex || '',
+        maritalStatus: item.marital_status || '',
+        clothingSize: item.clothing_size || '',
+        shoeSize: item.shoe_size || '',
+        address: {
+          street: item.address_street || '',
+          number: item.address_number || '',
+          complement: item.address_complement || '',
+          neighborhood: item.address_neighborhood || '',
+          city: item.address_city || '',
+          state: item.address_state || '',
+          zipCode: item.address_zip_code || '',
+        },
+        avatar: item.avatar || '',
+        lastPurchaseDate: item.last_purchase_date || '',
+        totalSpent: parseFloat(item.total_spent) || 0,
+        preferences: item.preferences ? item.preferences.split(',').map((p:string) => p.trim()) : [],
+        joinDate: item.join_date || '',
+      }));
+      setCustomers(parsedCustomers.reverse());
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Erro", description: "Não foi possível carregar os clientes.", variant: "destructive" });
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomers();
+  }, []);
 
   const filteredCustomers = useMemo(() => {
     return customers.filter(customer =>
@@ -133,49 +178,66 @@ export default function CustomersPage() {
     setCurrentCustomer(prev => ({ ...prev, preferences: e.target.value.split(',').map(p => p.trim()).filter(Boolean) }));
   };
 
-  const handleSubmit = () => {
-    if (editingCustomer) {
-      const updatedCustomerData = {
-        ...editingCustomer,
-        ...currentCustomer,
-        address: {
-          ...(editingCustomer.address || {}),
-          ...(currentCustomer.address || {}),
-        },
-      } as Customer;
-      setCustomers(prev => prev.map(c => c.id === editingCustomer.id ? updatedCustomerData : c));
-    } else {
-      const newCustomerData: Customer = {
-        id: String(Date.now()),
-        name: currentCustomer.name || "",
-        email: currentCustomer.email || "",
-        phoneNumbers: currentCustomer.phoneNumbers || [],
-        cpf: currentCustomer.cpf || "",
-        birthDate: currentCustomer.birthDate || "", // Stored as YYYY-MM-DD
-        sex: currentCustomer.sex || "",
-        maritalStatus: currentCustomer.maritalStatus || "",
-        clothingSize: currentCustomer.clothingSize || "",
-        shoeSize: currentCustomer.shoeSize || "",
-        address: {
-          street: currentCustomer.address?.street || "",
-          number: currentCustomer.address?.number || "",
-          complement: currentCustomer.address?.complement || "",
-          neighborhood: currentCustomer.address?.neighborhood || "",
-          city: currentCustomer.address?.city || "",
-          state: currentCustomer.address?.state || "",
-          zipCode: currentCustomer.address?.zipCode || "",
-        },
-        preferences: currentCustomer.preferences || [],
-        joinDate: new Date().toISOString().split('T')[0],
-        lastPurchaseDate: '', 
-        totalSpent: 0,
-        avatar: currentCustomer.avatar || `https://placehold.co/40x40.png?text=${(currentCustomer.name || 'N A').split(' ').map(n=>n[0]).join('').toUpperCase()}`
-      };
-      setCustomers(prev => [newCustomerData, ...prev]);
+  const prepareDataForApi = (customer: Partial<Customer>) => ({
+    id: customer.id,
+    name: customer.name,
+    email: customer.email,
+    cpf: customer.cpf,
+    birth_date: customer.birthDate,
+    sex: customer.sex,
+    marital_status: customer.maritalStatus,
+    clothing_size: customer.clothingSize,
+    shoe_size: customer.shoeSize,
+    address_street: customer.address?.street,
+    address_number: customer.address?.number,
+    address_complement: customer.address?.complement,
+    address_neighborhood: customer.address?.neighborhood,
+    address_city: customer.address?.city,
+    address_state: customer.address?.state,
+    address_zip_code: customer.address?.zipCode,
+    phone_numbers: customer.phoneNumbers?.join(', '),
+    preferences: customer.preferences?.join(', '),
+    avatar: customer.avatar,
+    last_purchase_date: customer.lastPurchaseDate,
+    total_spent: customer.totalSpent,
+    join_date: customer.joinDate,
+  });
+
+  const handleSubmit = async () => {
+    let response;
+    try {
+      if (editingCustomer) {
+        const updatedCustomerData = { ...editingCustomer, ...currentCustomer, address: { ...(editingCustomer.address || {}), ...(currentCustomer.address || {}) } } as Customer;
+        const apiData = prepareDataForApi(updatedCustomerData);
+        response = await fetch(`${API_URL}/cpf/${editingCustomer.cpf}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(apiData),
+        });
+      } else {
+        const newCustomerData: Partial<Customer> = {
+          id: String(Date.now()), ...currentCustomer, joinDate: new Date().toISOString().split('T')[0], lastPurchaseDate: '', totalSpent: 0,
+          avatar: currentCustomer.avatar || `https://placehold.co/40x40.png?text=${(currentCustomer.name || 'NA').split(' ').map(n=>n[0]).join('').toUpperCase()}`
+        };
+        const apiData = prepareDataForApi(newCustomerData);
+        response = await fetch(API_URL, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ data: [apiData] }),
+        });
+      }
+
+      if (!response.ok) throw new Error(`Falha ao salvar cliente. Status: ${response.status}`);
+      
+      toast({ title: "Sucesso!", description: `Cliente ${editingCustomer ? 'atualizado' : 'adicionado'} com sucesso.` });
+      setIsFormOpen(false);
+      setEditingCustomer(null);
+      setCurrentCustomer(initialFormState);
+      fetchCustomers();
+    } catch (error) {
+      console.error(error);
+      toast({ title: "Erro", description: `Não foi possível salvar o cliente.`, variant: "destructive" });
     }
-    setIsFormOpen(false);
-    setEditingCustomer(null);
-    setCurrentCustomer(initialFormState);
   };
 
   const handleEdit = (customer: Customer) => {
@@ -190,9 +252,19 @@ export default function CustomersPage() {
     setIsFormOpen(true);
   };
 
-  const handleDelete = (customerId: string) => {
-    if (window.confirm("Tem certeza que deseja excluir este cliente?")) {
-      setCustomers(prev => prev.filter(c => c.id !== customerId));
+  const handleDelete = async (customerId: string) => {
+    const customerToDelete = customers.find(c => c.id === customerId);
+    if (!customerToDelete) return;
+    if (window.confirm(`Tem certeza que deseja excluir o cliente ${customerToDelete.name}?`)) {
+      try {
+        const response = await fetch(`${API_URL}/cpf/${customerToDelete.cpf}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error('Falha ao excluir cliente.');
+        toast({ title: "Sucesso!", description: "Cliente excluído com sucesso." });
+        fetchCustomers();
+      } catch (error) {
+        console.error(error);
+        toast({ title: "Erro", description: "Não foi possível excluir o cliente.", variant: "destructive" });
+      }
     }
   };
 
@@ -200,6 +272,22 @@ export default function CustomersPage() {
     setCurrentPage(1); 
   }, [searchTerm]);
 
+  const SkeletonRow = () => (
+    <TableRow>
+      <TableCell className="w-[300px]">
+        <div className="flex items-center gap-3">
+          <Skeleton className="h-10 w-10 rounded-full" />
+          <div className="space-y-2"><Skeleton className="h-4 w-[150px]" /><Skeleton className="h-3 w-[100px]" /></div>
+        </div>
+      </TableCell>
+      <TableCell className="w-[250px]"><div className="space-y-2"><Skeleton className="h-4 w-full" /><Skeleton className="h-3 w-3/4" /></div></TableCell>
+      <TableCell><Skeleton className="h-4 w-[120px]" /></TableCell>
+      <TableCell><Skeleton className="h-4 w-[100px]" /></TableCell>
+      <TableCell className="text-right"><Skeleton className="h-4 w-[100px] ml-auto" /></TableCell>
+      <TableCell><Skeleton className="h-4 w-[150px]" /></TableCell>
+      <TableCell className="text-right"><div className="flex gap-2 justify-end"><Skeleton className="h-8 w-8" /><Skeleton className="h-8 w-8" /></div></TableCell>
+    </TableRow>
+  );
 
   return (
     <div className="space-y-6">
@@ -219,7 +307,6 @@ export default function CustomersPage() {
               </DialogDescription>
             </DialogHeader>
             <div className="grid gap-4 py-4 max-h-[70vh] overflow-y-auto pr-4">
-              {/* Dados Pessoais */}
               <h3 className="text-lg font-semibold col-span-full">Dados Pessoais</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><Label htmlFor="name">Nome Completo</Label><Input id="name" name="name" value={currentCustomer.name || ''} onChange={handleInputChange} /></div>
@@ -232,11 +319,8 @@ export default function CustomersPage() {
                     <PopoverTrigger asChild>
                       <Button
                         variant={"outline"}
-                        id="birthDate" // For the label association
-                        className={cn(
-                          "w-full justify-start text-left font-normal",
-                          !currentCustomer.birthDate && "text-muted-foreground"
-                        )}
+                        id="birthDate"
+                        className={cn("w-full justify-start text-left font-normal", !currentCustomer.birthDate && "text-muted-foreground")}
                       >
                         <CalendarDays className="mr-2 h-4 w-4" />
                         {currentCustomer.birthDate && currentCustomer.birthDate !== ''
@@ -248,15 +332,8 @@ export default function CustomersPage() {
                       <Calendar
                         mode="single"
                         selected={currentCustomer.birthDate ? new Date(currentCustomer.birthDate + "T00:00:00") : undefined}
-                        onSelect={(date) => {
-                          const newBirthDate = date ? format(date, "yyyy-MM-dd") : '';
-                          setCurrentCustomer(prev => ({ ...prev, birthDate: newBirthDate }));
-                        }}
-                        captionLayout="dropdown-buttons"
-                        fromYear={1900}
-                        toYear={new Date().getFullYear()}
-                        initialFocus
-                        locale={ptBR}
+                        onSelect={(date) => setCurrentCustomer(prev => ({ ...prev, birthDate: date ? format(date, "yyyy-MM-dd") : '' }))}
+                        captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} initialFocus locale={ptBR}
                       />
                     </PopoverContent>
                   </Popover>
@@ -277,14 +354,12 @@ export default function CustomersPage() {
                 </div>
               </div>
 
-              {/* Preferências de Tamanho */}
               <h3 className="text-lg font-semibold col-span-full mt-4">Preferências de Tamanho</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><Label htmlFor="clothingSize">Tamanho de Roupa (ex: G, 42)</Label><Input id="clothingSize" name="clothingSize" value={currentCustomer.clothingSize || ''} onChange={handleInputChange} /></div>
                 <div><Label htmlFor="shoeSize">Tamanho de Calçado (ex: 38)</Label><Input id="shoeSize" name="shoeSize" value={currentCustomer.shoeSize || ''} onChange={handleInputChange} /></div>
               </div>
 
-              {/* Endereço */}
               <h3 className="text-lg font-semibold col-span-full mt-4">Endereço</h3>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><Label htmlFor="address.zipCode">CEP</Label><Input id="address.zipCode" name="zipCode" value={currentCustomer.address?.zipCode || ''} onChange={handleAddressInputChange} /></div>
@@ -302,7 +377,6 @@ export default function CustomersPage() {
                 </div>
               </div>
               
-              {/* Outras Preferências */}
               <h3 className="text-lg font-semibold col-span-full mt-4">Outras Preferências</h3>
                <div>
                 <Label htmlFor="preferences">Preferências de Estilo (separadas por vírgula)</Label>
@@ -338,55 +412,59 @@ export default function CustomersPage() {
                   <TableHead>Cliente</TableHead>
                   <TableHead>Contato</TableHead>
                   <TableHead>CPF</TableHead>
-                  <TableHead className="cursor-pointer hover:bg-muted/50"><ArrowUpDown className="inline-block mr-1 h-4 w-4" />Última Compra</TableHead>
-                  <TableHead className="text-right cursor-pointer hover:bg-muted/50"><ArrowUpDown className="inline-block mr-1 h-4 w-4" />Total Gasto</TableHead>
+                  <TableHead>Última Compra</TableHead>
+                  <TableHead className="text-right">Total Gasto</TableHead>
                   <TableHead>Preferências</TableHead>
                   <TableHead className="text-right">Ações</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {paginatedCustomers.map((customer) => (
-                  <TableRow key={customer.id}>
-                    <TableCell>
-                      <div className="flex items-center gap-3">
-                        <Avatar>
-                          <AvatarImage src={customer.avatar || `https://placehold.co/40x40.png?text=${customer.name.split(' ').map(n=>n[0]).join('').toUpperCase()}`} alt={customer.name} data-ai-hint="person avatar" />
-                          <AvatarFallback>{customer.name.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
-                        </Avatar>
-                        <div>
-                          <div className="font-medium text-foreground">{customer.name}</div>
-                          <div className="text-xs text-muted-foreground">Entrou em: {customer.joinDate ? format(new Date(customer.joinDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</div>
+                {isLoading ? (
+                  [...Array(ITEMS_PER_PAGE)].map((_, i) => <SkeletonRow key={i} />)
+                ) : paginatedCustomers.length > 0 ? (
+                  paginatedCustomers.map((customer) => (
+                    <TableRow key={customer.id}>
+                      <TableCell>
+                        <div className="flex items-center gap-3">
+                          <Avatar>
+                            <AvatarImage src={customer.avatar || `https://placehold.co/40x40.png?text=${customer.name.split(' ').map(n=>n[0]).join('').toUpperCase()}`} alt={customer.name} data-ai-hint="person avatar" />
+                            <AvatarFallback>{customer.name.split(' ').map(n => n[0]).join('').toUpperCase()}</AvatarFallback>
+                          </Avatar>
+                          <div>
+                            <div className="font-medium text-foreground">{customer.name}</div>
+                            <div className="text-xs text-muted-foreground">Entrou em: {customer.joinDate ? format(new Date(customer.joinDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</div>
+                          </div>
                         </div>
-                      </div>
-                    </TableCell>
-                    <TableCell>
-                      <div className="text-sm text-foreground">{customer.email}</div>
-                      {customer.phoneNumbers && customer.phoneNumbers.length > 0 && <div className="text-xs text-muted-foreground">{customer.phoneNumbers.join(', ')}</div>}
-                    </TableCell>
-                    <TableCell>{customer.cpf}</TableCell>
-                    <TableCell>{customer.lastPurchaseDate ? format(new Date(customer.lastPurchaseDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</TableCell>
-                    <TableCell className="text-right font-medium text-foreground">{customer.totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
-                    <TableCell>
-                      <div className="flex flex-wrap gap-1">
-                        {customer.preferences.map(pref => <Badge key={pref} variant="secondary">{pref}</Badge>)}
-                      </div>
-                    </TableCell>
-                    <TableCell className="text-right">
-                      <Button variant="ghost" size="icon" onClick={() => handleEdit(customer)} title="Editar Cliente">
-                        <Edit className="h-4 w-4" />
-                        <span className="sr-only">Editar</span>
-                      </Button>
-                      <Button variant="ghost" size="icon" onClick={() => handleDelete(customer.id)} className="text-destructive hover:text-destructive/80" title="Excluir Cliente">
-                        <Trash2 className="h-4 w-4" />
-                        <span className="sr-only">Excluir</span>
-                      </Button>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                      </TableCell>
+                      <TableCell>
+                        <div className="text-sm text-foreground">{customer.email}</div>
+                        {customer.phoneNumbers && customer.phoneNumbers.length > 0 && <div className="text-xs text-muted-foreground">{customer.phoneNumbers.join(', ')}</div>}
+                      </TableCell>
+                      <TableCell>{customer.cpf}</TableCell>
+                      <TableCell>{customer.lastPurchaseDate ? format(new Date(customer.lastPurchaseDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</TableCell>
+                      <TableCell className="text-right font-medium text-foreground">{customer.totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
+                      <TableCell>
+                        <div className="flex flex-wrap gap-1">
+                          {customer.preferences.map(pref => <Badge key={pref} variant="secondary">{pref}</Badge>)}
+                        </div>
+                      </TableCell>
+                      <TableCell className="text-right">
+                        <Button variant="ghost" size="icon" onClick={() => handleEdit(customer)} title="Editar Cliente">
+                          <Edit className="h-4 w-4" />
+                          <span className="sr-only">Editar</span>
+                        </Button>
+                        <Button variant="ghost" size="icon" onClick={() => handleDelete(customer.id)} className="text-destructive hover:text-destructive/80" title="Excluir Cliente">
+                          <Trash2 className="h-4 w-4" />
+                          <span className="sr-only">Excluir</span>
+                        </Button>
+                      </TableCell>
+                    </TableRow>
+                  ))
+                ) : null}
               </TableBody>
             </Table>
           </div>
-          {filteredCustomers.length === 0 && (
+          {!isLoading && filteredCustomers.length === 0 && (
             <p className="text-center text-muted-foreground py-8">Nenhum cliente encontrado.</p>
           )}
           {filteredCustomers.length > 0 && (
@@ -420,3 +498,4 @@ export default function CustomersPage() {
   );
 }
 
+    
