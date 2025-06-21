@@ -91,6 +91,22 @@ const safeParseDate = (dateString: string | undefined): Date | null => {
     return null;
 };
 
+const parseAddress = (addressString: string | undefined): CustomerAddress => {
+  const emptyAddress: CustomerAddress = { street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zipCode: '' };
+  if (!addressString) return emptyAddress;
+
+  const parts = addressString.split(';').map(p => p.trim());
+  return {
+    street: parts[0] || '',
+    number: parts[1] || '',
+    complement: parts[2] || '',
+    neighborhood: parts[3] || '',
+    city: parts[4] || '',
+    state: parts[5] || '',
+    zipCode: parts[6] || '',
+  };
+};
+
 export default function ClientesPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -146,7 +162,7 @@ export default function ClientesPage() {
                     maritalStatus: item['ESTADO CIVIL'] || '',
                     clothingSize: item['TAMANHO ROUPA'] || '',
                     shoeSize: item['TAMANHO CALCADO'] || '',
-                    address: { street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zipCode: '' }, // Address fields from sheet are not individually parsed by default.
+                    address: parseAddress(item['ENDEREÇO']),
                     avatar: outrosData.avatar || '',
                     lastPurchaseDate: parsedLastPurchaseDate ? format(parsedLastPurchaseDate, 'yyyy-MM-dd') : '',
                     totalSpent: parseFloat(outrosData.totalSpent) || 0,
@@ -220,15 +236,15 @@ export default function ClientesPage() {
   // Prepare data for SheetDB API format
   const prepareDataForApi = (customer: Partial<Customer>) => {
     const addressParts = [
-      customer.address?.street,
-      customer.address?.number,
-      customer.address?.complement,
-      customer.address?.neighborhood,
-      customer.address?.city,
-      customer.address?.state,
-      customer.address?.zipCode
-    ].filter(Boolean);
-    const fullAddress = addressParts.join(', ');
+      customer.address?.street || '',
+      customer.address?.number || '',
+      customer.address?.complement || '',
+      customer.address?.neighborhood || '',
+      customer.address?.city || '',
+      customer.address?.state || '',
+      customer.address?.zipCode || ''
+    ];
+    const fullAddress = addressParts.join(';');
 
     const outrosData = JSON.stringify({
       preferences: customer.preferences || [],
@@ -390,7 +406,6 @@ export default function ClientesPage() {
               </div>
 
               <h3 className="text-lg font-semibold col-span-full mt-4">Endereço</h3>
-              <p className="text-sm text-muted-foreground col-span-full -mt-3">O endereço completo é salvo em um único campo. Preencha novamente ao editar.</p>
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div><Label htmlFor="address.zipCode">CEP</Label><Input name="zipCode" value={currentCustomer.address?.zipCode || ''} onChange={handleAddressInputChange} /></div>
                 <div><Label htmlFor="address.street">Logradouro (Rua/Avenida)</Label><Input name="street" value={currentCustomer.address?.street || ''} onChange={handleAddressInputChange} /></div>
