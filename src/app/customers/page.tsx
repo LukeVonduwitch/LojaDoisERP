@@ -65,6 +65,35 @@ const sexOptions = ["Feminino", "Masculino", "Outro", "Prefiro não informar"];
 const maritalStatusOptions = ["Solteiro(a)", "Casado(a)", "União Estável", "Divorciado(a)", "Viúvo(a)", "Prefiro não informar"];
 const brazilianStates = ["AC", "AL", "AP", "AM", "BA", "CE", "DF", "ES", "GO", "MA", "MT", "MS", "MG", "PA", "PB", "PR", "PE", "PI", "RJ", "RN", "RS", "RO", "RR", "SC", "SP", "SE", "TO"];
 
+const safeParseDate = (dateString: string | undefined): Date | null => {
+    if (!dateString) return null;
+    let d: Date | undefined;
+
+    // Try parsing yyyy-MM-dd (with potential time part to ignore)
+    if (/^\d{4}-\d{2}-\d{2}/.test(dateString)) {
+        d = new Date(dateString.substring(0, 10) + "T00:00:00Z");
+        if (!isNaN(d.getTime())) return d;
+    }
+    
+    // Then try parsing dd/MM/yyyy
+    const parts = dateString.split('/');
+    if (parts.length === 3) {
+        const year = parseInt(parts[2], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[0], 10);
+        if (!isNaN(year) && !isNaN(month) && !isNaN(day) && year > 1000) {
+            d = new Date(year, month, day);
+            if (!isNaN(d.getTime())) return d;
+        }
+    }
+
+    // Fallback to direct parsing (for full ISO strings)
+    d = new Date(dateString);
+    if (!isNaN(d.getTime())) return d;
+
+    return null;
+};
+
 
 export default function CustomersPage() {
   const [customers, setCustomers] = useState<Customer[]>([]);
@@ -88,35 +117,47 @@ export default function CustomersPage() {
       if (!response.ok) throw new Error('Falha ao buscar clientes.');
       const data = await response.json();
       
-      const parsedCustomers: Customer[] = data.map((item: any) => {
-        let outrosData: any = {};
-        try {
-          outrosData = item.OUTROS ? JSON.parse(item.OUTROS) : {};
-        } catch (e) {
-          console.error("Falha ao analisar o campo OUTROS:", item.OUTROS, e);
-        }
+      if (!Array.isArray(data)) {
+        throw new Error("A API não retornou uma lista de clientes.");
+      }
 
-        return {
-          id: item.ID,
-          name: item.NOME || '',
-          email: item.EMAIL || '',
-          phoneNumbers: item.TELEFONES ? item.TELEFONES.split(',').map((p:string) => p.trim()) : [],
-          cpf: item.CPF || '',
-          birthDate: item.NASCIMENTO || '',
-          sex: item.SEXO || '',
-          maritalStatus: item['ESTADO CIVIL'] || '',
-          clothingSize: item['TAMANHO ROUPA'] || '',
-          shoeSize: item['TAMANHO CALCADO'] || '',
-          address: {
-            street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zipCode: '',
-          },
-          avatar: outrosData.avatar || '',
-          lastPurchaseDate: outrosData.lastPurchaseDate || '',
-          totalSpent: parseFloat(outrosData.totalSpent) || 0,
-          preferences: outrosData.preferences || [],
-          joinDate: outrosData.joinDate || '',
-        };
-      });
+      const parsedCustomers: Customer[] = data
+        .map((item: any): Customer | null => {
+            try {
+                let outrosData: any = {};
+                if (item.OUTROS) {
+                    try {
+                        outrosData = JSON.parse(item.OUTROS);
+                    } catch (e) {
+                        console.error("Falha ao analisar o campo OUTROS (será ignorado para esta linha):", item.OUTROS, e);
+                    }
+                }
+
+                return {
+                    id: item.ID,
+                    name: item.NOME || '',
+                    email: item.EMAIL || '',
+                    phoneNumbers: item.TELEFONES ? item.TELEFONES.split(',').map((p:string) => p.trim()) : [],
+                    cpf: item.CPF || '',
+                    birthDate: item.NASCIMENTO || '',
+                    sex: item.SEXO || '',
+                    maritalStatus: item['ESTADO CIVIL'] || '',
+                    clothingSize: item['TAMANHO ROUPA'] || '',
+                    shoeSize: item['TAMANHO CALCADO'] || '',
+                    address: { street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zipCode: '' },
+                    avatar: outrosData.avatar || '',
+                    lastPurchaseDate: outrosData.lastPurchaseDate || '',
+                    totalSpent: parseFloat(outrosData.totalSpent) || 0,
+                    preferences: outrosData.preferences || [],
+                    joinDate: outrosData.joinDate || '',
+                };
+            } catch (error) {
+                console.error("Falha ao processar registro de cliente (registro ignorado):", item, error);
+                return null;
+            }
+        })
+        .filter((c): c is Customer => c !== null); 
+
       setCustomers(parsedCustomers.reverse());
     } catch (error) {
       console.error(error);
@@ -202,13 +243,15 @@ export default function CustomersPage() {
       joinDate: customer.joinDate || '',
     });
 
+    const birthDate = safeParseDate(customer.birthDate);
+
     return {
       'ID': customer.id,
       'NOME': customer.name,
       'EMAIL': customer.email,
       'TELEFONES': customer.phoneNumbers?.join(', '),
       'CPF': customer.cpf,
-      'NASCIMENTO': customer.birthDate,
+      'NASCIMENTO': birthDate ? format(birthDate, 'yyyy-MM-dd') : '',
       'SEXO': customer.sex,
       'ESTADO CIVIL': customer.maritalStatus,
       'TAMANHO ROUPA': customer.clothingSize,
@@ -304,30 +347,7 @@ export default function CustomersPage() {
     </TableRow>
   );
 
-  let birthDateValue: Date | null = null;
-  if (currentCustomer.birthDate) {
-    let d;
-    // Try parsing yyyy-MM-dd first
-    if (/^\d{4}-\d{2}-\d{2}$/.test(currentCustomer.birthDate)) {
-      d = new Date(currentCustomer.birthDate + "T00:00:00");
-    } else {
-      // Then try parsing dd/MM/yyyy
-      const parts = currentCustomer.birthDate.split('/');
-      if (parts.length === 3) {
-        const year = parseInt(parts[2], 10);
-        const month = parseInt(parts[1], 10) - 1;
-        const day = parseInt(parts[0], 10);
-        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
-          d = new Date(year, month, day);
-        }
-      }
-    }
-    if (d && !isNaN(d.getTime())) {
-      birthDateValue = d;
-    }
-  }
-  const isBirthDateValid = birthDateValue instanceof Date && !isNaN(birthDateValue.getTime());
-
+  const birthDateValue = useMemo(() => safeParseDate(currentCustomer.birthDate), [currentCustomer.birthDate]);
 
   return (
     <div className="space-y-6">
@@ -360,10 +380,10 @@ export default function CustomersPage() {
                       <Button
                         variant={"outline"}
                         id="birthDate"
-                        className={cn("w-full justify-start text-left font-normal", !isBirthDateValid && "text-muted-foreground")}
+                        className={cn("w-full justify-start text-left font-normal", !birthDateValue && "text-muted-foreground")}
                       >
                         <CalendarDays className="mr-2 h-4 w-4" />
-                        {isBirthDateValid
+                        {birthDateValue
                           ? format(birthDateValue, "PPP", { locale: ptBR })
                           : <span>Escolha uma data</span>}
                       </Button>
@@ -371,9 +391,9 @@ export default function CustomersPage() {
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
-                        selected={isBirthDateValid ? birthDateValue : undefined}
+                        selected={birthDateValue ?? undefined}
                         onSelect={(date) => setCurrentCustomer(prev => ({ ...prev, birthDate: date ? format(date, "yyyy-MM-dd") : '' }))}
-                        captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} locale={ptBR}
+                        captionLayout="dropdown-buttons" fromYear={1920} toYear={new Date().getFullYear()} locale={ptBR}
                       />
                     </PopoverContent>
                   </Popover>
@@ -462,7 +482,10 @@ export default function CustomersPage() {
                 {isLoading ? (
                   [...Array(ITEMS_PER_PAGE)].map((_, i) => <SkeletonRow key={i} />)
                 ) : paginatedCustomers.length > 0 ? (
-                  paginatedCustomers.map((customer) => (
+                  paginatedCustomers.map((customer) => {
+                    const joinDate = safeParseDate(customer.joinDate);
+                    const lastPurchaseDate = safeParseDate(customer.lastPurchaseDate);
+                    return (
                     <TableRow key={customer.id}>
                       <TableCell>
                         <div className="flex items-center gap-3">
@@ -472,7 +495,7 @@ export default function CustomersPage() {
                           </Avatar>
                           <div>
                             <div className="font-medium text-foreground">{customer.name}</div>
-                            <div className="text-xs text-muted-foreground">Entrou em: {customer.joinDate ? format(new Date(customer.joinDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</div>
+                            <div className="text-xs text-muted-foreground">Entrou em: {joinDate ? format(joinDate, "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</div>
                           </div>
                         </div>
                       </TableCell>
@@ -481,7 +504,7 @@ export default function CustomersPage() {
                         {customer.phoneNumbers && customer.phoneNumbers.length > 0 && <div className="text-xs text-muted-foreground">{customer.phoneNumbers.join(', ')}</div>}
                       </TableCell>
                       <TableCell>{customer.cpf}</TableCell>
-                      <TableCell>{customer.lastPurchaseDate ? format(new Date(customer.lastPurchaseDate + "T00:00:00"), "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</TableCell>
+                      <TableCell>{lastPurchaseDate ? format(lastPurchaseDate, "dd/MM/yyyy", { locale: ptBR }) : 'N/A'}</TableCell>
                       <TableCell className="text-right font-medium text-foreground">{customer.totalSpent.toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })}</TableCell>
                       <TableCell>
                         <div className="flex flex-wrap gap-1">
@@ -499,7 +522,8 @@ export default function CustomersPage() {
                         </Button>
                       </TableCell>
                     </TableRow>
-                  ))
+                    );
+                  })
                 ) : null}
               </TableBody>
             </Table>
@@ -537,3 +561,5 @@ export default function CustomersPage() {
     </div>
   );
 }
+
+    
