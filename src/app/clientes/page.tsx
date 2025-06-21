@@ -52,7 +52,6 @@ interface Customer {
   lastPurchaseDate: string; // Stored as YYYY-MM-DD
   totalSpent: number;
   preferences: string[];
-  joinDate: string; // Stored as YYYY-MM-DD
 }
 
 // API and form constants
@@ -148,8 +147,7 @@ export default function ClientesPage() {
                 }
                 
                 const parsedBirthDate = safeParseDate(item.NASCIMENTO);
-                const parsedJoinDate = safeParseDate(item.joinDate || outrosData.joinDate);
-                const parsedLastPurchaseDate = safeParseDate(item.lastPurchaseDate || outrosData.lastPurchaseDate);
+                const parsedLastPurchaseDate = safeParseDate(outrosData.lastPurchaseDate);
 
                 return {
                     id: item.ID,
@@ -167,7 +165,6 @@ export default function ClientesPage() {
                     lastPurchaseDate: parsedLastPurchaseDate ? format(parsedLastPurchaseDate, 'yyyy-MM-dd') : '',
                     totalSpent: parseFloat(outrosData.totalSpent) || 0,
                     preferences: outrosData.preferences || [],
-                    joinDate: parsedJoinDate ? format(parsedJoinDate, 'yyyy-MM-dd') : '',
                 };
             } catch (error) {
                 console.error("Falha ao processar registro de cliente (registro ignorado):", item, error);
@@ -230,7 +227,7 @@ export default function ClientesPage() {
   };
 
   const handleListChange = (fieldName: 'phoneNumbers' | 'preferences', value: string) => {
-     setCurrentCustomer(prev => ({ ...prev, [fieldName]: value.split(',').map(p => p.trim()) }));
+     setCurrentCustomer(prev => ({ ...prev, [fieldName]: value.split(',') }));
   };
   
   // Prepare data for SheetDB API format
@@ -251,7 +248,6 @@ export default function ClientesPage() {
       avatar: customer.avatar || '',
       lastPurchaseDate: customer.lastPurchaseDate || '',
       totalSpent: customer.totalSpent || 0,
-      joinDate: customer.joinDate || new Date().toISOString().split('T')[0],
     });
 
     return {
@@ -282,10 +278,14 @@ export default function ClientesPage() {
     if (editingCustomer) {
         customerToSubmit = { ...editingCustomer, ...currentCustomer };
     } else {
+        const maxId = customers.length > 0 
+          ? Math.max(0, ...customers.map(c => parseInt(c.id, 10)).filter(id => !isNaN(id)))
+          : 0;
+        const newId = String(maxId + 1);
+
         customerToSubmit = {
-            id: String(Date.now()),
+            id: newId,
             ...currentCustomer,
-            joinDate: new Date().toISOString().split('T')[0],
             lastPurchaseDate: '', 
             totalSpent: 0,
             avatar: currentCustomer.avatar || `https://placehold.co/40x40.png?text=${(currentCustomer.name || 'NA').split(' ').map(n=>n[0]).join('').toUpperCase()}`
@@ -293,8 +293,8 @@ export default function ClientesPage() {
     }
     
     // Clean up arrays before submitting to remove empty entries
-    customerToSubmit.phoneNumbers = (customerToSubmit.phoneNumbers || []).filter(Boolean);
-    customerToSubmit.preferences = (customerToSubmit.preferences || []).filter(Boolean);
+    customerToSubmit.phoneNumbers = (currentCustomer.phoneNumbers || []).map(p => p.trim()).filter(Boolean);
+    customerToSubmit.preferences = (currentCustomer.preferences || []).map(p => p.trim()).filter(Boolean);
 
     const apiData = prepareDataForApi(customerToSubmit);
     const body = method === 'POST' ? JSON.stringify({ data: [apiData] }) : JSON.stringify(apiData);
@@ -465,7 +465,6 @@ export default function ClientesPage() {
                           </Avatar>
                           <div>
                             <div className="font-medium text-foreground">{customer.name}</div>
-                            <div className="text-xs text-muted-foreground">Entrou em: {displayDate(customer.joinDate)}</div>
                           </div>
                         </div>
                       </TableCell>
