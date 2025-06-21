@@ -230,7 +230,7 @@ export default function ClientesPage() {
   };
 
   const handleListChange = (fieldName: 'phoneNumbers' | 'preferences', value: string) => {
-     setCurrentCustomer(prev => ({ ...prev, [fieldName]: value.split(',').map(p => p.trim()).filter(Boolean) }));
+     setCurrentCustomer(prev => ({ ...prev, [fieldName]: value.split(',').map(p => p.trim()) }));
   };
   
   // Prepare data for SheetDB API format
@@ -292,6 +292,10 @@ export default function ClientesPage() {
         };
     }
     
+    // Clean up arrays before submitting to remove empty entries
+    customerToSubmit.phoneNumbers = (customerToSubmit.phoneNumbers || []).filter(Boolean);
+    customerToSubmit.preferences = (customerToSubmit.preferences || []).filter(Boolean);
+
     const apiData = prepareDataForApi(customerToSubmit);
     const body = method === 'POST' ? JSON.stringify({ data: [apiData] }) : JSON.stringify(apiData);
 
