@@ -4,7 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Users } from "lucide-react";
 import { useState, useEffect } from 'react';
 
-const API_URL = 'https://sheetdb.io/api/v1/z1jkiua66i9yk/count';
+const API_URL = 'https://sheetdb.io/api/v1/z1jkiua66i9yk/count?sheet=Tabela1';
 
 export default function DashboardPage() {
   const [totalCustomers, setTotalCustomers] = useState<number | null>(null);
@@ -49,5 +49,3 @@ export default function DashboardPage() {
     </div>
   );
 }
-
-    

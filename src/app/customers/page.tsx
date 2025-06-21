@@ -58,7 +58,8 @@ interface Customer {
   joinDate: string;
 }
 
-const API_URL = 'https://sheetdb.io/api/v1/z1jkiua66i9yk';
+const API_BASE_URL = 'https://sheetdb.io/api/v1/z1jkiua66i9yk';
+const SHEET_NAME = 'Tabela1';
 const ITEMS_PER_PAGE = 10;
 const sexOptions = ["Feminino", "Masculino", "Outro", "Prefiro não informar"];
 const maritalStatusOptions = ["Solteiro(a)", "Casado(a)", "União Estável", "Divorciado(a)", "Viúvo(a)", "Prefiro não informar"];
@@ -83,36 +84,39 @@ export default function CustomersPage() {
   const fetchCustomers = async () => {
     setIsLoading(true);
     try {
-      const response = await fetch(API_URL);
+      const response = await fetch(`${API_BASE_URL}?sheet=${SHEET_NAME}`);
       if (!response.ok) throw new Error('Falha ao buscar clientes.');
       const data = await response.json();
       
-      const parsedCustomers: Customer[] = data.map((item: any) => ({
-        id: item.id || item.cpf,
-        name: item.name || '',
-        email: item.email || '',
-        phoneNumbers: item.phone_numbers ? item.phone_numbers.split(',').map((p:string) => p.trim()) : [],
-        cpf: item.cpf || '',
-        birthDate: item.birth_date || '',
-        sex: item.sex || '',
-        maritalStatus: item.marital_status || '',
-        clothingSize: item.clothing_size || '',
-        shoeSize: item.shoe_size || '',
-        address: {
-          street: item.address_street || '',
-          number: item.address_number || '',
-          complement: item.address_complement || '',
-          neighborhood: item.address_neighborhood || '',
-          city: item.address_city || '',
-          state: item.address_state || '',
-          zipCode: item.address_zip_code || '',
-        },
-        avatar: item.avatar || '',
-        lastPurchaseDate: item.last_purchase_date || '',
-        totalSpent: parseFloat(item.total_spent) || 0,
-        preferences: item.preferences ? item.preferences.split(',').map((p:string) => p.trim()) : [],
-        joinDate: item.join_date || '',
-      }));
+      const parsedCustomers: Customer[] = data.map((item: any) => {
+        let outrosData: any = {};
+        try {
+          outrosData = item.OUTROS ? JSON.parse(item.OUTROS) : {};
+        } catch (e) {
+          console.error("Falha ao analisar o campo OUTROS:", item.OUTROS, e);
+        }
+
+        return {
+          id: item.ID,
+          name: item.NOME || '',
+          email: item.EMAIL || '',
+          phoneNumbers: item.TELEFONES ? item.TELEFONES.split(',').map((p:string) => p.trim()) : [],
+          cpf: item.CPF || '',
+          birthDate: item.NASCIMENTO || '',
+          sex: item.SEXO || '',
+          maritalStatus: item['ESTADO CIVIL'] || '',
+          clothingSize: item['TAMANHO ROUPA'] || '',
+          shoeSize: item['TAMANHO CALCADO'] || '',
+          address: {
+            street: '', number: '', complement: '', neighborhood: '', city: '', state: '', zipCode: '',
+          },
+          avatar: outrosData.avatar || '',
+          lastPurchaseDate: outrosData.lastPurchaseDate || '',
+          totalSpent: parseFloat(outrosData.totalSpent) || 0,
+          preferences: outrosData.preferences || [],
+          joinDate: outrosData.joinDate || '',
+        };
+      });
       setCustomers(parsedCustomers.reverse());
     } catch (error) {
       console.error(error);
@@ -178,30 +182,41 @@ export default function CustomersPage() {
     setCurrentCustomer(prev => ({ ...prev, preferences: e.target.value.split(',').map(p => p.trim()).filter(Boolean) }));
   };
 
-  const prepareDataForApi = (customer: Partial<Customer>) => ({
-    id: customer.id,
-    name: customer.name,
-    email: customer.email,
-    cpf: customer.cpf,
-    birth_date: customer.birthDate,
-    sex: customer.sex,
-    marital_status: customer.maritalStatus,
-    clothing_size: customer.clothingSize,
-    shoe_size: customer.shoeSize,
-    address_street: customer.address?.street,
-    address_number: customer.address?.number,
-    address_complement: customer.address?.complement,
-    address_neighborhood: customer.address?.neighborhood,
-    address_city: customer.address?.city,
-    address_state: customer.address?.state,
-    address_zip_code: customer.address?.zipCode,
-    phone_numbers: customer.phoneNumbers?.join(', '),
-    preferences: customer.preferences?.join(', '),
-    avatar: customer.avatar,
-    last_purchase_date: customer.lastPurchaseDate,
-    total_spent: customer.totalSpent,
-    join_date: customer.joinDate,
-  });
+  const prepareDataForApi = (customer: Partial<Customer>) => {
+    const addressParts = [
+      customer.address?.street,
+      customer.address?.number,
+      customer.address?.complement,
+      customer.address?.neighborhood,
+      customer.address?.city,
+      customer.address?.state,
+      customer.address?.zipCode
+    ].filter(Boolean);
+    const fullAddress = addressParts.join(', ');
+
+    const outrosData = JSON.stringify({
+      preferences: customer.preferences || [],
+      avatar: customer.avatar || '',
+      lastPurchaseDate: customer.lastPurchaseDate || '',
+      totalSpent: customer.totalSpent || 0,
+      joinDate: customer.joinDate || '',
+    });
+
+    return {
+      'ID': customer.id,
+      'NOME': customer.name,
+      'EMAIL': customer.email,
+      'TELEFONES': customer.phoneNumbers?.join(', '),
+      'CPF': customer.cpf,
+      'NASCIMENTO': customer.birthDate,
+      'SEXO': customer.sex,
+      'ESTADO CIVIL': customer.maritalStatus,
+      'TAMANHO ROUPA': customer.clothingSize,
+      'TAMANHO CALCADO': customer.shoeSize,
+      'ENDEREÇO': fullAddress,
+      'OUTROS': outrosData,
+    };
+  };
 
   const handleSubmit = async () => {
     let response;
@@ -209,7 +224,7 @@ export default function CustomersPage() {
       if (editingCustomer) {
         const updatedCustomerData = { ...editingCustomer, ...currentCustomer, address: { ...(editingCustomer.address || {}), ...(currentCustomer.address || {}) } } as Customer;
         const apiData = prepareDataForApi(updatedCustomerData);
-        response = await fetch(`${API_URL}/cpf/${editingCustomer.cpf}`, {
+        response = await fetch(`${API_BASE_URL}/ID/${editingCustomer.id}?sheet=${SHEET_NAME}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(apiData),
@@ -220,7 +235,7 @@ export default function CustomersPage() {
           avatar: currentCustomer.avatar || `https://placehold.co/40x40.png?text=${(currentCustomer.name || 'NA').split(' ').map(n=>n[0]).join('').toUpperCase()}`
         };
         const apiData = prepareDataForApi(newCustomerData);
-        response = await fetch(API_URL, {
+        response = await fetch(`${API_BASE_URL}?sheet=${SHEET_NAME}`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ data: [apiData] }),
@@ -257,7 +272,7 @@ export default function CustomersPage() {
     if (!customerToDelete) return;
     if (window.confirm(`Tem certeza que deseja excluir o cliente ${customerToDelete.name}?`)) {
       try {
-        const response = await fetch(`${API_URL}/cpf/${customerToDelete.cpf}`, { method: 'DELETE' });
+        const response = await fetch(`${API_BASE_URL}/ID/${customerToDelete.id}?sheet=${SHEET_NAME}`, { method: 'DELETE' });
         if (!response.ok) throw new Error('Falha ao excluir cliente.');
         toast({ title: "Sucesso!", description: "Cliente excluído com sucesso." });
         fetchCustomers();
@@ -497,5 +512,3 @@ export default function CustomersPage() {
     </div>
   );
 }
-
-    
