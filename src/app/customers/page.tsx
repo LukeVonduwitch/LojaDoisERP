@@ -304,6 +304,9 @@ export default function CustomersPage() {
     </TableRow>
   );
 
+  const birthDateValue = currentCustomer.birthDate ? new Date(currentCustomer.birthDate + "T00:00:00") : null;
+  const isBirthDateValid = birthDateValue && !isNaN(birthDateValue.getTime());
+
   return (
     <div className="space-y-6">
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
@@ -335,18 +338,18 @@ export default function CustomersPage() {
                       <Button
                         variant={"outline"}
                         id="birthDate"
-                        className={cn("w-full justify-start text-left font-normal", !currentCustomer.birthDate && "text-muted-foreground")}
+                        className={cn("w-full justify-start text-left font-normal", !isBirthDateValid && "text-muted-foreground")}
                       >
                         <CalendarDays className="mr-2 h-4 w-4" />
-                        {currentCustomer.birthDate && currentCustomer.birthDate !== ''
-                          ? format(new Date(currentCustomer.birthDate + "T00:00:00"), "PPP", { locale: ptBR })
+                        {isBirthDateValid
+                          ? format(birthDateValue, "PPP", { locale: ptBR })
                           : <span>Escolha uma data</span>}
                       </Button>
                     </PopoverTrigger>
                     <PopoverContent className="w-auto p-0">
                       <Calendar
                         mode="single"
-                        selected={currentCustomer.birthDate ? new Date(currentCustomer.birthDate + "T00:00:00") : undefined}
+                        selected={isBirthDateValid ? birthDateValue : undefined}
                         onSelect={(date) => setCurrentCustomer(prev => ({ ...prev, birthDate: date ? format(date, "yyyy-MM-dd") : '' }))}
                         captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} initialFocus locale={ptBR}
                       />
