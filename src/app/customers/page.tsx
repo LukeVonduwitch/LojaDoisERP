@@ -373,7 +373,7 @@ export default function CustomersPage() {
                         mode="single"
                         selected={isBirthDateValid ? birthDateValue : undefined}
                         onSelect={(date) => setCurrentCustomer(prev => ({ ...prev, birthDate: date ? format(date, "yyyy-MM-dd") : '' }))}
-                        captionLayout="dropdown" fromYear={1900} toYear={new Date().getFullYear()} initialFocus locale={ptBR}
+                        captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} locale={ptBR}
                       />
                     </PopoverContent>
                   </Popover>
