@@ -30,7 +30,7 @@ import { useSidebar } from '@/components/ui/sidebar';
 const navItems = [
   { href: '/', label: 'Painel', icon: LayoutDashboard },
   { href: '/stock', label: 'Estoque', icon: Boxes },
-  { href: '/customers', label: 'Clientes', icon: Users },
+  { href: '/clientes', label: 'Clientes', icon: Users },
 ];
 
 export function AppSidebar() {
