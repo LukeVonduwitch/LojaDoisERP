@@ -304,8 +304,25 @@ export default function CustomersPage() {
     </TableRow>
   );
 
-  const birthDateValue = currentCustomer.birthDate ? new Date(currentCustomer.birthDate + "T00:00:00") : null;
-  const isBirthDateValid = birthDateValue && !isNaN(birthDateValue.getTime());
+  let birthDateValue: Date | null = null;
+  if (currentCustomer.birthDate) {
+    let d = new Date(currentCustomer.birthDate + "T00:00:00");
+    if (isNaN(d.getTime())) {
+      const parts = currentCustomer.birthDate.split('/');
+      if (parts.length === 3) {
+        const year = parseInt(parts[2], 10);
+        const month = parseInt(parts[1], 10) - 1;
+        const day = parseInt(parts[0], 10);
+        if (!isNaN(year) && !isNaN(month) && !isNaN(day)) {
+          d = new Date(year, month, day);
+        }
+      }
+    }
+    if (d && !isNaN(d.getTime())) {
+      birthDateValue = d;
+    }
+  }
+  const isBirthDateValid = birthDateValue instanceof Date;
 
   return (
     <div className="space-y-6">
