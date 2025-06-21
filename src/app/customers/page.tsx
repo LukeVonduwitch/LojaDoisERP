@@ -306,8 +306,12 @@ export default function CustomersPage() {
 
   let birthDateValue: Date | null = null;
   if (currentCustomer.birthDate) {
-    let d = new Date(currentCustomer.birthDate + "T00:00:00");
-    if (isNaN(d.getTime())) {
+    let d;
+    // Try parsing yyyy-MM-dd first
+    if (/^\d{4}-\d{2}-\d{2}$/.test(currentCustomer.birthDate)) {
+      d = new Date(currentCustomer.birthDate + "T00:00:00");
+    } else {
+      // Then try parsing dd/MM/yyyy
       const parts = currentCustomer.birthDate.split('/');
       if (parts.length === 3) {
         const year = parseInt(parts[2], 10);
@@ -322,7 +326,8 @@ export default function CustomersPage() {
       birthDateValue = d;
     }
   }
-  const isBirthDateValid = birthDateValue instanceof Date;
+  const isBirthDateValid = birthDateValue instanceof Date && !isNaN(birthDateValue.getTime());
+
 
   return (
     <div className="space-y-6">
@@ -368,7 +373,7 @@ export default function CustomersPage() {
                         mode="single"
                         selected={isBirthDateValid ? birthDateValue : undefined}
                         onSelect={(date) => setCurrentCustomer(prev => ({ ...prev, birthDate: date ? format(date, "yyyy-MM-dd") : '' }))}
-                        captionLayout="dropdown-buttons" fromYear={1900} toYear={new Date().getFullYear()} initialFocus locale={ptBR}
+                        captionLayout="dropdown" fromYear={1900} toYear={new Date().getFullYear()} initialFocus locale={ptBR}
                       />
                     </PopoverContent>
                   </Popover>
