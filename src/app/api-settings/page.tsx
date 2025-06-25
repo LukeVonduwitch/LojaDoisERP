@@ -150,6 +150,48 @@ export default function ApiSettingsPage() {
          </Card>
       )}
 
+      <Card className="shadow-lg">
+        <CardHeader>
+          <CardTitle>Regras de Consumo</CardTitle>
+          <CardDescription>Diretrizes para o uso da API.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4 text-sm text-muted-foreground">
+          <p>Durante o horário comercial, siga rigorosamente as regras de acesso à plataforma. Isso é fundamental para manter a operação da loja funcionando sem problemas.</p>
+          <div className="space-y-3 pl-4 border-l-2 border-primary/50 mt-4">
+            <div className="space-y-1">
+              <h4 className="font-semibold text-foreground">Carga Inicial de Dados</h4>
+              <p>A execução da carga inicial de dados deve ser programada para ocorrer após as 23:00hrs e antes das 06:00hrs, visando minimizar impactos no Frente de Loja dos Clientes da Data System.</p>
+            </div>
+
+            <div className="space-y-1">
+              <h4 className="font-semibold text-foreground">Consulta de Dados Durante o Período Restrito (6:00 às 23:00)</h4>
+              <p>Durante o período, todas as consultas de Vendas, Estoque e outras rotas de Movimentação estarão sujeitas a um limite de até 5 dias de histórico. Essa limitação visa otimizar o desempenho e garantir o correto funcionamento do sistema.</p>
+            </div>
+
+            <div className="space-y-1">
+              <h4 className="font-semibold text-foreground">Robustez de Comunicação e Infraestrutura</h4>
+              <p>A plataforma deve ser desenvolvida com mecanismos de tratamento de falhas de comunicação e infraestrutura. Caso ocorra qualquer problema de comunicação ou falha na infraestrutura, a aplicação deverá ser capaz de efetuar novas requisições e buscar os dados necessários após a retomada da comunicação. As cargas de dados devem ser efetuadas de forma incremental, evitando gargalos e transporte de informação desnecessária.</p>
+            </div>
+            
+            <div className="space-y-1">
+              <h4 className="font-semibold text-foreground">Consequências por Não Respeitar as Premissas</h4>
+              <p>É imprescindível que todos os parceiros respeitem as premissas estabelecidas. Em caso de descumprimento, a Data System poderá adotar medidas como a suspensão temporária da Hash do parceiro ou até mesmo a suspensão por tempo indeterminado, a critério da gravidade da infração.</p>
+            </div>
+
+            <div className="space-y-1">
+              <h4 className="font-semibold text-foreground">Duração do Token</h4>
+              <p>O token da nossa plataforma tem duração de 24horas.</p>
+            </div>
+
+            <div className="space-y-1">
+              <h4 className="font-semibold text-foreground">Janela de Manutenção</h4>
+              <p>As manutenções em ambiente de banco de dados podem ocorrer na janela de 01h-03h sem a necessidade de aviso prévio.</p>
+            </div>
+          </div>
+          <p className="pt-4 text-xs italic">Essas premissas garantem uma integração segura, estável e eficiente entre a plataforma e os parceiros, respeitando os horários de menor impacto nas operações dos clientes e implementando mecanismos de contingência para situações adversas.</p>
+        </CardContent>
+      </Card>
+
     </div>
   );
 }
