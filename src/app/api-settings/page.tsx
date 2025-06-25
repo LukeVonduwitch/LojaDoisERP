@@ -77,21 +77,21 @@ export default function ApiSettingsPage() {
               />
             </div>
             <div>
-              <Label htmlFor="username">Usuário (ou Chave da API)</Label>
+              <Label htmlFor="username">CNPJ</Label>
               <Input 
                 id="username" 
-                placeholder="seu_usuario"
+                placeholder="00.000.000/0000-00"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
                 disabled={isLoading}
               />
             </div>
             <div>
-              <Label htmlFor="password">Senha (ou Token)</Label>
+              <Label htmlFor="password">Hash</Label>
               <Input 
                 id="password" 
                 type="password"
-                placeholder="••••••••••••"
+                placeholder="Seu hash de autenticação"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 disabled={isLoading}
