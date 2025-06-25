@@ -24,25 +24,51 @@ export default function ApiSettingsPage() {
     setApiStatus(null);
     setToken(null);
     setTokenExpiration(null);
-    
-    // Simula um atraso de rede
-    await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Lógica de simulação de POST para obter token
-    if (apiUrl && username && password) {
-      setApiStatus(200); // Sucesso
-      // Gera um token falso e data de expiração
-      const fakeToken = `token-${btoa(Math.random().toString()).substring(10, 40)}`;
-      setToken(fakeToken);
-      const expiration = new Date();
-      expiration.setHours(expiration.getHours() + 24);
-      setTokenExpiration(expiration);
-
-    } else {
-      setApiStatus(400); // Requisição inválida (campos faltando)
+    if (!apiUrl || !username || !password) {
+      setApiStatus(400);
+      setIsLoading(false);
+      return;
     }
+    
+    try {
+      const response = await fetch(apiUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          cnpj: username,
+          hash: password,
+        }),
+      });
 
-    setIsLoading(false);
+      setApiStatus(response.status);
+
+      if (response.ok) {
+        const data = await response.json();
+        if (data.token && typeof data.token === 'string') {
+          setToken(data.token);
+          const expiration = new Date();
+          expiration.setHours(expiration.getHours() + 24);
+          setTokenExpiration(expiration);
+        } else {
+          setToken(null);
+        }
+      } else {
+        setToken(null);
+        setTokenExpiration(null);
+      }
+    } catch (error) {
+      console.error("API Connection Error:", error);
+      // This error is often caused by CORS policy on the server-side.
+      // Check the browser console (F12) for more details.
+      setApiStatus(503); // Service Unavailable / Network Error
+      setToken(null);
+      setTokenExpiration(null);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const getStatusVariant = (status: number | null) => {
@@ -53,9 +79,12 @@ export default function ApiSettingsPage() {
 
   const getStatusText = (status: number | null) => {
     if (status === null) return "Aguardando teste...";
-    if (status === 200) return "Conexão bem-sucedida";
+    if (status >= 200 && status < 300) return "Conexão bem-sucedida";
     if (status === 400) return "Erro: Preencha todos os campos";
-    return `Erro Inesperado: ${status}`;
+    if (status === 401 || status === 403) return "Erro: CNPJ ou Hash inválido";
+    if (status === 404) return "Erro: URL da API não encontrada";
+    if (status === 503) return "Erro: Falha na conexão. Verifique o console.";
+    return `Erro: ${status}`;
   }
 
   return (
