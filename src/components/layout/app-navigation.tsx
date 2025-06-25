@@ -22,6 +22,7 @@ import {
   Settings,
   LogOut,
   MenuIcon,
+  Plug,
 } from 'lucide-react';
 import { VestuarioLogo } from '@/components/icons/logo';
 import { cn } from '@/lib/utils';
@@ -32,6 +33,12 @@ const navItems = [
   { href: '/stock', label: 'Estoque', icon: Boxes },
   { href: '/clientes', label: 'Clientes', icon: Users },
 ];
+
+const settingsItems = [
+  { href: '/api-settings', label: 'API', icon: Plug },
+  { href: '/settings', label: 'Configurações', icon: Settings },
+];
+
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -67,14 +74,19 @@ export function AppSidebar() {
       </SidebarContent>
       <SidebarFooter className="p-2 border-t">
         <SidebarMenu>
-            <SidebarMenuItem>
-                <SidebarMenuButton asChild tooltip={{ children: "Configurações", side: 'right', className: 'ml-2' }}>
-                    <Link href="/settings">
-                        <Settings />
-                        <span>Configurações</span>
-                    </Link>
-                </SidebarMenuButton>
-            </SidebarMenuItem>
+            {settingsItems.map((item) => (
+                <SidebarMenuItem key={item.href}>
+                    <SidebarMenuButton 
+                        asChild 
+                        isActive={pathname === item.href}
+                        tooltip={{ children: item.label, side: 'right', className: 'ml-2' }}>
+                        <Link href={item.href}>
+                            <item.icon />
+                            <span>{item.label}</span>
+                        </Link>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            ))}
             <SidebarMenuItem>
                  <SidebarMenuButton variant="outline" asChild tooltip={{ children: "Sair", side: 'right', className: 'ml-2' }}>
                     <button type="button" onClick={() => alert("Sair clicado")}>
