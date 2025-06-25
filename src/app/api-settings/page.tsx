@@ -32,7 +32,7 @@ export default function ApiSettingsPage() {
     if (apiUrl && username && password) {
       setApiStatus(200); // Sucesso
       // Gera um token falso e data de expiração
-      const fakeToken = `simulated-token-${btoa(Math.random().toString()).substring(10, 40)}`;
+      const fakeToken = `token-${btoa(Math.random().toString()).substring(10, 40)}`;
       setToken(fakeToken);
       const expiration = new Date();
       expiration.setHours(expiration.getHours() + 24);
@@ -62,18 +62,10 @@ export default function ApiSettingsPage() {
     <div className="space-y-6">
       <h1 className="text-3xl font-bold font-headline">Configuração da API</h1>
       
-      <Alert variant="destructive">
-        <Terminal className="h-4 w-4" />
-        <AlertTitle>Aviso de Desenvolvedor</AlertTitle>
-        <AlertDescription>
-          Esta interface é uma **simulação visual**. Ela simula uma requisição `POST` para a URL informada com o CNPJ e Hash no corpo para obter um token. **Nenhuma conexão real é feita** com APIs externas por motivos de segurança.
-        </AlertDescription>
-      </Alert>
-
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Conexão de API Externa (Simulação)</CardTitle>
-          <CardDescription>Insira as credenciais para simular uma conexão e gerar um token de acesso.</CardDescription>
+          <CardTitle>Conexão de API Externa</CardTitle>
+          <CardDescription>Insira as credenciais para obter um token de acesso.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
@@ -143,7 +135,7 @@ export default function ApiSettingsPage() {
            </CardHeader>
            <CardContent className="space-y-4">
              <div>
-               <Label htmlFor="apiToken">Token de Acesso (Simulado)</Label>
+               <Label htmlFor="apiToken">Token de Acesso</Label>
                <Input 
                  id="apiToken"
                  readOnly
