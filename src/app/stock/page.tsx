@@ -54,9 +54,11 @@ const productCategories = categories.filter(c => c !== "Todos");
 const productSuppliers = suppliersList.filter(s => s !== "Todos");
 
 const ITEMS_PER_PAGE = 10;
+const LOCAL_STORAGE_KEY_PRODUCTS = 'vestuario-erp-products';
 
 export default function StockPage() {
   const [products, setProducts] = useState<Product[]>(initialProducts);
+  const [isDataInitialized, setIsDataInitialized] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [categoryFilter, setCategoryFilter] = useState("Todos");
   const [supplierFilter, setSupplierFilter] = useState("Todos");
@@ -80,6 +82,35 @@ export default function StockPage() {
   });
 
   const [currentPage, setCurrentPage] = useState(1);
+
+  // Load products from localStorage on initial client render
+  useEffect(() => {
+    try {
+      const storedProducts = localStorage.getItem(LOCAL_STORAGE_KEY_PRODUCTS);
+      if (storedProducts) {
+        setProducts(JSON.parse(storedProducts));
+      } else {
+        // If nothing is in storage, set initial products and save them
+        localStorage.setItem(LOCAL_STORAGE_KEY_PRODUCTS, JSON.stringify(initialProducts));
+      }
+    } catch (error) {
+      console.error("Failed to access localStorage for products:", error);
+      // Fallback to initial products in case of error
+      setProducts(initialProducts);
+    }
+    setIsDataInitialized(true);
+  }, []);
+
+  // Save products to localStorage whenever they change
+  useEffect(() => {
+    if (isDataInitialized) {
+      try {
+        localStorage.setItem(LOCAL_STORAGE_KEY_PRODUCTS, JSON.stringify(products));
+      } catch (error) {
+        console.error("Failed to save products to localStorage:", error);
+      }
+    }
+  }, [products, isDataInitialized]);
 
 
   const filteredProducts = useMemo(() => {

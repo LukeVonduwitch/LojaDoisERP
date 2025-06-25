@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -9,6 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Terminal, Loader2, CheckCircle } from "lucide-react";
+
+const API_SETTINGS_KEY = 'vestuario-erp-api-settings';
 
 export default function ApiSettingsPage() {
   const [apiUrl, setApiUrl] = useState("");
@@ -18,6 +20,44 @@ export default function ApiSettingsPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [token, setToken] = useState<string | null>(null);
   const [tokenExpiration, setTokenExpiration] = useState<Date | null>(null);
+  const [isDataInitialized, setIsDataInitialized] = useState(false);
+
+  // Load settings from localStorage on initial client render
+  useEffect(() => {
+    try {
+      const savedSettings = localStorage.getItem(API_SETTINGS_KEY);
+      if (savedSettings) {
+        const { apiUrl, username, password, token, tokenExpiration } = JSON.parse(savedSettings);
+        if (apiUrl) setApiUrl(apiUrl);
+        if (username) setUsername(username);
+        if (password) setPassword(password);
+        
+        if (token && tokenExpiration) {
+          const expirationDate = new Date(tokenExpiration);
+          if (expirationDate > new Date()) {
+            setToken(token);
+            setTokenExpiration(expirationDate);
+          }
+        }
+      }
+    } catch (error) {
+      console.error("Failed to load API settings from localStorage:", error);
+    }
+    setIsDataInitialized(true);
+  }, []);
+
+  // Save settings to localStorage whenever they change
+  useEffect(() => {
+    if (isDataInitialized) {
+      try {
+        const settings = { apiUrl, username, password, token: token, tokenExpiration: tokenExpiration };
+        localStorage.setItem(API_SETTINGS_KEY, JSON.stringify(settings));
+      } catch (error) {
+        console.error("Failed to save API settings to localStorage:", error);
+      }
+    }
+  }, [apiUrl, username, password, token, tokenExpiration, isDataInitialized]);
+
 
   const handleTestConnection = async () => {
     setIsLoading(true);
@@ -173,7 +213,7 @@ export default function ApiSettingsPage() {
                />
              </div>
              <p className="text-sm text-muted-foreground">
-               Expira em: <span className="font-medium text-foreground">{tokenExpiration.toLocaleString('pt-BR')}</span> (24 horas)
+               Expira em: <span className="font-medium text-foreground">{new Date(tokenExpiration).toLocaleString('pt-BR')}</span> (24 horas)
              </p>
            </CardContent>
          </Card>
