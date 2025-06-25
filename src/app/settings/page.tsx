@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -9,17 +9,63 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Button } from "@/components/ui/button";
 import { VestuarioLogo } from "@/components/icons/logo";
 import { Upload } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+
+const SETTINGS_KEY = 'vestuario-erp-app-settings';
 
 export default function SettingsPage() {
   const [appName, setAppName] = useState("Vestuário ERP");
   const [theme, setTheme] = useState("system");
   const [currency, setCurrency] = useState("BRL");
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [isDataInitialized, setIsDataInitialized] = useState(false);
+  const { toast } = useToast();
+
+  // Load settings from localStorage on initial client render
+  useEffect(() => {
+    try {
+      const savedSettings = localStorage.getItem(SETTINGS_KEY);
+      if (savedSettings) {
+        const { appName, theme, currency, logoPreview } = JSON.parse(savedSettings);
+        if (appName) setAppName(appName);
+        if (theme) setTheme(theme);
+        if (currency) setCurrency(currency);
+        if (logoPreview) setLogoPreview(logoPreview);
+      }
+    } catch (error) {
+      console.error("Failed to load app settings from localStorage:", error);
+    }
+    setIsDataInitialized(true);
+  }, []);
+
+  const handleSaveChanges = () => {
+    if (isDataInitialized) {
+      try {
+        const settings = { appName, theme, currency, logoPreview };
+        localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings));
+        toast({
+          title: "Sucesso!",
+          description: "As suas configurações foram salvas.",
+        });
+      } catch (error) {
+        console.error("Failed to save app settings to localStorage:", error);
+        toast({
+          title: "Erro!",
+          description: "Não foi possível salvar as configurações.",
+          variant: "destructive",
+        });
+      }
+    }
+  };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
       const file = e.target.files[0];
-      setLogoPreview(URL.createObjectURL(file));
+      const reader = new FileReader();
+      reader.onloadend = () => {
+        setLogoPreview(reader.result as string);
+      };
+      reader.readAsDataURL(file);
     }
   };
 
@@ -98,7 +144,7 @@ export default function SettingsPage() {
           </div>
         </CardContent>
         <CardFooter className="border-t pt-6">
-            <Button onClick={() => alert("Configurações salvas!")}>Salvar Alterações</Button>
+            <Button onClick={handleSaveChanges}>Salvar Alterações</Button>
         </CardFooter>
       </Card>
     </div>
