@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Terminal, Loader2 } from "lucide-react";
+import { Terminal, Loader2, CheckCircle } from "lucide-react";
 
 export default function ApiSettingsPage() {
   const [apiUrl, setApiUrl] = useState("");
@@ -16,17 +16,28 @@ export default function ApiSettingsPage() {
   const [password, setPassword] = useState("");
   const [apiStatus, setApiStatus] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [token, setToken] = useState<string | null>(null);
+  const [tokenExpiration, setTokenExpiration] = useState<Date | null>(null);
 
   const handleTestConnection = async () => {
     setIsLoading(true);
     setApiStatus(null);
+    setToken(null);
+    setTokenExpiration(null);
     
     // Simula um atraso de rede
     await new Promise(resolve => setTimeout(resolve, 1500));
 
-    // Lógica de simulação simples
+    // Lógica de simulação de POST para obter token
     if (apiUrl && username && password) {
       setApiStatus(200); // Sucesso
+      // Gera um token falso e data de expiração
+      const fakeToken = `simulated-token-${btoa(Math.random().toString()).substring(10, 40)}`;
+      setToken(fakeToken);
+      const expiration = new Date();
+      expiration.setHours(expiration.getHours() + 24);
+      setTokenExpiration(expiration);
+
     } else {
       setApiStatus(400); // Requisição inválida (campos faltando)
     }
@@ -55,14 +66,14 @@ export default function ApiSettingsPage() {
         <Terminal className="h-4 w-4" />
         <AlertTitle>Aviso de Desenvolvedor</AlertTitle>
         <AlertDescription>
-          Esta interface é uma **simulação visual** e **não realiza conexões reais** com APIs externas por motivos de segurança. A conexão de dados ativa para este aplicativo continua sendo via SheetDB, conforme configurado no código-fonte.
+          Esta interface é uma **simulação visual**. Ela simula uma requisição `POST` para a URL informada com o CNPJ e Hash no corpo para obter um token. **Nenhuma conexão real é feita** com APIs externas por motivos de segurança.
         </AlertDescription>
       </Alert>
 
       <Card className="shadow-lg">
         <CardHeader>
           <CardTitle>Conexão de API Externa (Simulação)</CardTitle>
-          <CardDescription>Insira as credenciais para simular uma conexão com a API.</CardDescription>
+          <CardDescription>Insira as credenciais para simular uma conexão e gerar um token de acesso.</CardDescription>
         </CardHeader>
         <CardContent className="space-y-6">
           <div className="space-y-4">
@@ -70,7 +81,7 @@ export default function ApiSettingsPage() {
               <Label htmlFor="apiUrl">URL da API</Label>
               <Input 
                 id="apiUrl" 
-                placeholder="https://api.exemplo.com/v1"
+                placeholder="https://api.exemplo.com/v1/auth"
                 value={apiUrl}
                 onChange={(e) => setApiUrl(e.target.value)}
                 disabled={isLoading}
@@ -107,7 +118,7 @@ export default function ApiSettingsPage() {
                   Testando...
                 </>
               ) : (
-                "Testar Conexão"
+                "Testar Conexão e Gerar Token"
               )}
             </Button>
             <div className="flex items-center gap-2">
@@ -120,6 +131,33 @@ export default function ApiSettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {token && tokenExpiration && (
+        <Card className="shadow-lg border-accent/50">
+           <CardHeader>
+             <CardTitle className="flex items-center gap-2 text-accent">
+                <CheckCircle className="h-6 w-6" />
+                Token Gerado com Sucesso
+            </CardTitle>
+             <CardDescription>Este token seria usado para autenticar as próximas requisições.</CardDescription>
+           </CardHeader>
+           <CardContent className="space-y-4">
+             <div>
+               <Label htmlFor="apiToken">Token de Acesso (Simulado)</Label>
+               <Input 
+                 id="apiToken"
+                 readOnly
+                 value={token}
+                 className="font-mono bg-muted/50"
+               />
+             </div>
+             <p className="text-sm text-muted-foreground">
+               Expira em: <span className="font-medium text-foreground">{tokenExpiration.toLocaleString('pt-BR')}</span> (24 horas)
+             </p>
+           </CardContent>
+         </Card>
+      )}
+
     </div>
   );
 }
