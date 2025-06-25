@@ -1,43 +1,123 @@
 
+"use client";
+
+import { useState } from "react";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
+import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Info } from "lucide-react";
+import { Terminal, Loader2 } from "lucide-react";
 
 export default function ApiSettingsPage() {
+  const [apiUrl, setApiUrl] = useState("");
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [apiStatus, setApiStatus] = useState<number | null>(null);
+  const [isLoading, setIsLoading] = useState(false);
+
+  const handleTestConnection = async () => {
+    setIsLoading(true);
+    setApiStatus(null);
+    
+    // Simula um atraso de rede
+    await new Promise(resolve => setTimeout(resolve, 1500));
+
+    // Lógica de simulação simples
+    if (apiUrl && username && password) {
+      setApiStatus(200); // Sucesso
+    } else {
+      setApiStatus(400); // Requisição inválida (campos faltando)
+    }
+
+    setIsLoading(false);
+  };
+
+  const getStatusVariant = (status: number | null) => {
+    if (status === null) return "secondary";
+    if (status >= 200 && status < 300) return "default";
+    return "destructive";
+  };
+
+  const getStatusText = (status: number | null) => {
+    if (status === null) return "Aguardando teste...";
+    if (status === 200) return "Conexão bem-sucedida";
+    if (status === 400) return "Erro: Preencha todos os campos";
+    return `Erro Inesperado: ${status}`;
+  }
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold font-headline">Configuração da API</h1>
       
-      <Alert>
-        <Info className="h-4 w-4" />
-        <AlertTitle>Conexão de Dados</AlertTitle>
+      <Alert variant="destructive">
+        <Terminal className="h-4 w-4" />
+        <AlertTitle>Aviso de Desenvolvedor</AlertTitle>
         <AlertDescription>
-          Este ERP está conectado diretamente a uma planilha do Google Sheets através da API do SheetDB. Todas as operações de dados (clientes, estoque, etc.) são lidas e escritas nessa planilha. Para alterar a fonte de dados, você deve atualizar a URL da API diretamente no código-fonte.
+          Esta interface é uma **simulação visual** e **não realiza conexões reais** com APIs externas por motivos de segurança. A conexão de dados ativa para este aplicativo continua sendo via SheetDB, conforme configurado no código-fonte.
         </AlertDescription>
       </Alert>
 
       <Card className="shadow-lg">
         <CardHeader>
-          <CardTitle>Conexão da API (SheetDB)</CardTitle>
-          <CardDescription>Visualize a URL da API que está sendo usada para conectar-se à sua planilha de dados.</CardDescription>
+          <CardTitle>Conexão de API Externa (Simulação)</CardTitle>
+          <CardDescription>Insira as credenciais para simular uma conexão com a API.</CardDescription>
         </CardHeader>
-        <CardContent className="space-y-4">
-          <div>
-            <Label htmlFor="apiUrl">URL da API do SheetDB</Label>
-            <Input 
-              id="apiUrl" 
-              readOnly 
-              value="https://sheetdb.io/api/v1/z1jkiua66i9yk" 
-              className="mt-1 bg-muted"
-            />
-             <p className="text-sm text-muted-foreground mt-2">
-              Esta URL é apenas para visualização. A alteração é feita no código-fonte para garantir a segurança e estabilidade da aplicação.
-            </p>
+        <CardContent className="space-y-6">
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="apiUrl">URL da API</Label>
+              <Input 
+                id="apiUrl" 
+                placeholder="https://api.exemplo.com/v1"
+                value={apiUrl}
+                onChange={(e) => setApiUrl(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <Label htmlFor="username">Usuário (ou Chave da API)</Label>
+              <Input 
+                id="username" 
+                placeholder="seu_usuario"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
+            <div>
+              <Label htmlFor="password">Senha (ou Token)</Label>
+              <Input 
+                id="password" 
+                type="password"
+                placeholder="••••••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                disabled={isLoading}
+              />
+            </div>
           </div>
-          <Button disabled>Salvar Alterações</Button>
+
+          <div className="flex flex-col sm:flex-row items-center gap-4">
+            <Button onClick={handleTestConnection} disabled={isLoading} className="w-full sm:w-auto">
+              {isLoading ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Testando...
+                </>
+              ) : (
+                "Testar Conexão"
+              )}
+            </Button>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium text-muted-foreground">Status:</span>
+              <Badge variant={getStatusVariant(apiStatus)} className="text-sm">
+                {apiStatus && <span className="mr-2 font-bold">{apiStatus}</span>}
+                {getStatusText(apiStatus)}
+              </Badge>
+            </div>
+          </div>
         </CardContent>
       </Card>
     </div>
