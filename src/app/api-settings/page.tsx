@@ -143,15 +143,6 @@ export default function ApiSettingsPage() {
             </CardHeader>
             <CardContent className="space-y-6">
               <div className="space-y-4">
-                 <div>
-                  <Label htmlFor="apiUrl">URL da API</Label>
-                  <Input 
-                    id="apiUrl"
-                    readOnly 
-                    value={AUTH_API_URL}
-                    className="font-mono bg-muted/50"
-                  />
-                </div>
                 <div>
                   <Label htmlFor="username">CNPJ</Label>
                   <Input 
