@@ -10,12 +10,13 @@ import { Button } from "@/components/ui/button";
 import { VestuarioLogo } from "@/components/icons/logo";
 import { Upload } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useTheme } from "@/components/theme-provider";
 
 const SETTINGS_KEY = 'vestuario-erp-app-settings';
 
 export default function SettingsPage() {
+  const { theme, setTheme } = useTheme();
   const [appName, setAppName] = useState("Vestuário ERP");
-  const [theme, setTheme] = useState("system");
   const [currency, setCurrency] = useState("BRL");
   const [logoPreview, setLogoPreview] = useState<string | null>(null);
   const [isDataInitialized, setIsDataInitialized] = useState(false);
@@ -26,9 +27,9 @@ export default function SettingsPage() {
     try {
       const savedSettings = localStorage.getItem(SETTINGS_KEY);
       if (savedSettings) {
-        const { appName, theme, currency, logoPreview } = JSON.parse(savedSettings);
+        const { appName, theme: savedTheme, currency, logoPreview } = JSON.parse(savedSettings);
         if (appName) setAppName(appName);
-        if (theme) setTheme(theme);
+        if (savedTheme) setTheme(savedTheme);
         if (currency) setCurrency(currency);
         if (logoPreview) setLogoPreview(logoPreview);
       }
@@ -36,6 +37,7 @@ export default function SettingsPage() {
       console.error("Failed to load app settings from localStorage:", error);
     }
     setIsDataInitialized(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleSaveChanges = () => {
@@ -116,7 +118,7 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <Label htmlFor="theme">Preferência de Tema</Label>
-                    <Select value={theme} onValueChange={setTheme}>
+                    <Select value={theme} onValueChange={(value) => setTheme(value as "light" | "dark" | "system")}>
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Selecione um tema" />
                         </SelectTrigger>
