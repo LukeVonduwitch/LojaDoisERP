@@ -66,7 +66,7 @@ export default function ApiSettingsPage() {
     setTokenExpiration(null);
 
     if (!username || !password) {
-      setApiStatus(400);
+      setApiStatus(0); // Use a custom code for client-side error
       setIsLoading(false);
       return;
     }
@@ -117,12 +117,30 @@ export default function ApiSettingsPage() {
 
   const getStatusText = (status: number | null) => {
     if (status === null) return "Aguardando teste...";
-    if (status >= 200 && status < 300) return "Conexão bem-sucedida";
-    if (status === 400) return "Erro: Preencha todos os campos";
-    if (status === 401 || status === 403) return "Erro: CNPJ ou Hash inválido";
-    if (status === 404) return "Erro: URL da API não encontrada";
-    if (status === 503) return "Erro: Falha na conexão. Verifique o console.";
-    return `Erro: ${status}`;
+
+    // Custom code for client-side validation
+    if (status === 0) return "Erro: Preencha o CNPJ e o Hash";
+    
+    switch (status) {
+      case 200:
+        return "Sucesso na operação!";
+      case 204:
+        return "Sucesso na operação, porém sem conteúdo de resposta.";
+      case 400:
+        return "Erro na autenticação.";
+      case 401: // Kept for specificity, common for invalid credentials
+      case 403:
+        return "Erro: CNPJ ou Hash inválido";
+      case 404:
+        return "Usuário não autenticado.";
+      case 500:
+        return "Erro interno de servidor.";
+      case 503: // Kept for network errors
+        return "Erro: Falha na conexão. Verifique o console.";
+      default:
+         if (status > 200 && status < 300) return "Sucesso na operação!";
+         return `Erro: ${status}`;
+    }
   }
 
   return (
@@ -180,7 +198,7 @@ export default function ApiSettingsPage() {
                 <div className="flex items-center gap-2">
                   <span className="text-sm font-medium text-muted-foreground">Status:</span>
                   <Badge variant={getStatusVariant(apiStatus)} className="text-sm">
-                    {apiStatus && <span className="mr-2 font-bold">{apiStatus}</span>}
+                    {apiStatus !== null && <span className="mr-2 font-bold">{apiStatus}</span>}
                     {getStatusText(apiStatus)}
                   </Badge>
                 </div>
