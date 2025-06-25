@@ -1,7 +1,28 @@
 
-import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+"use client";
+
+import { useState } from "react";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from "@/components/ui/card";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { VestuarioLogo } from "@/components/icons/logo";
+import { Upload } from "lucide-react";
 
 export default function SettingsPage() {
+  const [appName, setAppName] = useState("Vestuário ERP");
+  const [theme, setTheme] = useState("system");
+  const [currency, setCurrency] = useState("BRL");
+  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+
+  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const file = e.target.files[0];
+      setLogoPreview(URL.createObjectURL(file));
+    }
+  };
+
   return (
     <div className="space-y-6">
       <h1 className="text-3xl font-bold font-headline">Configurações</h1>
@@ -10,26 +31,76 @@ export default function SettingsPage() {
           <CardTitle>Configurações do Aplicativo</CardTitle>
           <CardDescription>Gerencie suas preferências e configurações do aplicativo aqui.</CardDescription>
         </CardHeader>
-        <CardContent>
-          <p className="text-muted-foreground">A página de configurações está em construção. Mais opções estarão disponíveis em breve.</p>
-          <div className="mt-6 space-y-4">
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <span className="font-medium">Preferência de Tema</span>
-              <span className="text-muted-foreground">Sistema</span>
+        <CardContent className="space-y-8">
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-foreground">Identidade Visual</h3>
+            <div className="space-y-2">
+              <Label htmlFor="appName">Nome do Aplicativo</Label>
+              <Input 
+                id="appName" 
+                value={appName} 
+                onChange={(e) => setAppName(e.target.value)} 
+                className="max-w-sm"
+              />
             </div>
-            <div className="flex items-center justify-between p-4 border rounded-lg">
-              <span className="font-medium">Notificações</span>
-              <span className="text-muted-foreground">Ativado</span>
+            <div className="space-y-2">
+                <Label htmlFor="logo">Logo do Aplicativo</Label>
+                <div className="flex items-center gap-4">
+                    <div className="w-40 h-16 p-2 border rounded-md flex items-center justify-center bg-muted/30">
+                        {logoPreview ? (
+                            <img src={logoPreview} alt="Preview do Logo" className="max-h-full max-w-full object-contain" />
+                        ) : (
+                            <VestuarioLogo className="h-10 w-auto" />
+                        )}
+                    </div>
+                    <Button asChild variant="outline">
+                        <label htmlFor="logo-upload" className="cursor-pointer">
+                            <Upload className="mr-2 h-4 w-4" />
+                            Carregar Logo
+                            <input id="logo-upload" type="file" className="sr-only" accept="image/*" onChange={handleLogoChange} />
+                        </label>
+                    </Button>
+                </div>
+                <p className="text-xs text-muted-foreground">Recomendado: SVG, PNG ou JPG. Máximo 2MB.</p>
             </div>
-             <div className="flex items-center justify-between p-4 border rounded-lg">
-              <span className="font-medium">Moeda Padrão</span>
-              <span className="text-muted-foreground">BRL</span>
+          </div>
+
+          <div className="space-y-4">
+            <h3 className="text-lg font-medium text-foreground">Preferências</h3>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                    <Label htmlFor="theme">Preferência de Tema</Label>
+                    <Select value={theme} onValueChange={setTheme}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione um tema" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="light">Claro</SelectItem>
+                            <SelectItem value="dark">Escuro</SelectItem>
+                            <SelectItem value="system">Padrão do Sistema</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
+                <div className="space-y-2">
+                    <Label htmlFor="currency">Moeda Padrão</Label>
+                    <Select value={currency} onValueChange={setCurrency}>
+                        <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Selecione uma moeda" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            <SelectItem value="BRL">Real Brasileiro (BRL)</SelectItem>
+                            <SelectItem value="USD">Dólar Americano (USD)</SelectItem>
+                            <SelectItem value="EUR">Euro (EUR)</SelectItem>
+                        </SelectContent>
+                    </Select>
+                </div>
             </div>
           </div>
         </CardContent>
+        <CardFooter className="border-t pt-6">
+            <Button onClick={() => alert("Configurações salvas!")}>Salvar Alterações</Button>
+        </CardFooter>
       </Card>
     </div>
   );
 }
-
-    
