@@ -27,6 +27,7 @@ import {
 import { VestuarioLogo } from '@/components/icons/logo';
 import { cn } from '@/lib/utils';
 import { useSidebar } from '@/components/ui/sidebar';
+import { useEffect, useState } from 'react';
 
 const navItems = [
   { href: '/', label: 'Painel', icon: LayoutDashboard },
@@ -39,6 +40,12 @@ const settingsItems = [
   { href: '/settings', label: 'Configurações', icon: Settings },
 ];
 
+const SETTINGS_KEY = 'vestuario-erp-app-settings';
+
+const getInitials = (name: string) => {
+    if (!name) return "UP"; // Usuário Padrão
+    return name.split(' ').map(n => n[0]).join('').toUpperCase().substring(0, 2);
+};
 
 export function AppSidebar() {
   const pathname = usePathname();
@@ -103,6 +110,38 @@ export function AppSidebar() {
 
 export function AppHeader() {
   const { isMobile, toggleSidebar } = useSidebar();
+  const [userName, setUserName] = useState("Usuário");
+  const [userAvatar, setUserAvatar] = useState<string | null>(null);
+
+  const loadUserSettings = () => {
+    try {
+        const savedSettings = localStorage.getItem(SETTINGS_KEY);
+        if (savedSettings) {
+            const { userName: savedUserName, userAvatarPreview: savedAvatar } = JSON.parse(savedSettings);
+            if (savedUserName) setUserName(savedUserName);
+            if (savedAvatar) setUserAvatar(savedAvatar);
+        } else {
+            setUserName("Usuário");
+            setUserAvatar(null);
+        }
+    } catch (e) {
+      console.error("Failed to load user settings for header:", e);
+      setUserName("Usuário");
+      setUserAvatar(null);
+    }
+  };
+
+  useEffect(() => {
+    loadUserSettings();
+
+    // Listen for changes from other tabs/windows
+    window.addEventListener('storage', loadUserSettings);
+
+    return () => {
+      window.removeEventListener('storage', loadUserSettings);
+    };
+  }, []);
+
   return (
     <header className="sticky top-0 z-40 flex h-16 items-center gap-4 border-b bg-background/80 backdrop-blur-sm px-4 md:px-6">
        {isMobile && (
@@ -116,8 +155,8 @@ export function AppHeader() {
         </h1>
       </div>
       <Avatar>
-        <AvatarImage src="https://placehold.co/40x40.png" alt="Avatar do Usuário" data-ai-hint="user avatar" />
-        <AvatarFallback>JD</AvatarFallback>
+        <AvatarImage src={userAvatar || undefined} alt="Avatar do Usuário" data-ai-hint="user avatar" />
+        <AvatarFallback>{getInitials(userName)}</AvatarFallback>
       </Avatar>
     </header>
   );
