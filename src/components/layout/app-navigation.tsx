@@ -110,33 +110,34 @@ export function AppSidebar() {
 
 export function AppHeader() {
   const { isMobile, toggleSidebar } = useSidebar();
-  const [userName, setUserName] = useState("Usuário");
+  const [userName, setUserName] = useState("Usuário Padrão");
   const [userAvatar, setUserAvatar] = useState<string | null>(null);
-
-  const loadUserSettings = () => {
-    try {
-        const savedSettings = localStorage.getItem(SETTINGS_KEY);
-        if (savedSettings) {
-            const { userName: savedUserName, userAvatarPreview: savedAvatar } = JSON.parse(savedSettings);
-            if (savedUserName) setUserName(savedUserName);
-            if (savedAvatar) setUserAvatar(savedAvatar);
-        } else {
-            setUserName("Usuário");
-            setUserAvatar(null);
-        }
-    } catch (e) {
-      console.error("Failed to load user settings for header:", e);
-      setUserName("Usuário");
-      setUserAvatar(null);
-    }
-  };
+  const [isClient, setIsClient] = useState(false);
 
   useEffect(() => {
+    setIsClient(true);
+    
+    const loadUserSettings = () => {
+      try {
+          const savedSettings = localStorage.getItem(SETTINGS_KEY);
+          if (savedSettings) {
+              const { userName: savedUserName, userAvatarPreview: savedAvatar } = JSON.parse(savedSettings);
+              if (savedUserName) setUserName(savedUserName);
+              if (savedAvatar) setUserAvatar(savedAvatar);
+          } else {
+              setUserName("Usuário Padrão");
+              setUserAvatar(null);
+          }
+      } catch (e) {
+        console.error("Failed to load user settings for header:", e);
+        setUserName("Usuário Padrão");
+        setUserAvatar(null);
+      }
+    };
+
     loadUserSettings();
 
-    // Listen for changes from other tabs/windows
     window.addEventListener('storage', loadUserSettings);
-
     return () => {
       window.removeEventListener('storage', loadUserSettings);
     };
@@ -155,8 +156,14 @@ export function AppHeader() {
         </h1>
       </div>
       <Avatar>
-        <AvatarImage src={userAvatar || undefined} alt="Avatar do Usuário" data-ai-hint="user avatar" />
-        <AvatarFallback>{getInitials(userName)}</AvatarFallback>
+        {isClient ? (
+          <>
+            <AvatarImage src={userAvatar || undefined} alt="Avatar do Usuário" data-ai-hint="user avatar" />
+            <AvatarFallback>{getInitials(userName)}</AvatarFallback>
+          </>
+        ) : (
+          <AvatarFallback>{getInitials("Usuário Padrão")}</AvatarFallback>
+        )}
       </Avatar>
     </header>
   );
