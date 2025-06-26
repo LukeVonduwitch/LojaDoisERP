@@ -48,7 +48,7 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="flex items-center justify-center min-h-screen bg-background">
+    <div className="relative flex items-center justify-center min-h-screen bg-background">
       <Card className="w-full max-w-sm shadow-2xl">
         <CardHeader className="text-center space-y-4">
             <VestuarioLogo className="h-12 w-auto mx-auto" />
@@ -90,6 +90,10 @@ export default function LoginPage() {
           </CardFooter>
         </form>
       </Card>
+      <footer className="absolute bottom-4 text-center text-sm text-muted-foreground">
+        <p>&copy; {new Date().getFullYear()} Vestuário ERP. Todos os direitos reservados.</p>
+        <p>Desenvolvido por Eros.</p>
+      </footer>
     </div>
   );
 }
