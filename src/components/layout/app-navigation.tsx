@@ -2,7 +2,7 @@
 "use client";
 
 import Link from 'next/link';
-import { usePathname } from 'next/navigation';
+import { usePathname, useRouter } from 'next/navigation';
 import {
   Sidebar,
   SidebarHeader as ShadSidebarHeader,
@@ -49,6 +49,16 @@ const getInitials = (name: string) => {
 
 export function AppSidebar() {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = () => {
+    try {
+      localStorage.removeItem('vestuario-auth');
+    } catch (e) {
+      console.error("Could not remove auth from localStorage", e);
+    }
+    router.push('/login');
+  };
 
   return (
     <Sidebar collapsible="icon" variant="sidebar" side="left" className="border-r">
@@ -95,11 +105,9 @@ export function AppSidebar() {
                 </SidebarMenuItem>
             ))}
             <SidebarMenuItem>
-                 <SidebarMenuButton variant="outline" asChild tooltip={{ children: "Sair", side: 'right', className: 'ml-2' }}>
-                    <button type="button" onClick={() => alert("Sair clicado")}>
-                        <LogOut />
-                        <span>Sair</span>
-                    </button>
+                 <SidebarMenuButton variant="outline" tooltip={{ children: "Sair", side: 'right', className: 'ml-2' }} onClick={handleLogout}>
+                    <LogOut />
+                    <span>Sair</span>
                 </SidebarMenuButton>
             </SidebarMenuItem>
         </SidebarMenu>
