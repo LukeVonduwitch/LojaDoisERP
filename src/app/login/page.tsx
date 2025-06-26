@@ -52,7 +52,6 @@ export default function LoginPage() {
       <Card className="w-full max-w-sm shadow-2xl">
         <CardHeader className="text-center space-y-4">
             <VestuarioLogo className="h-12 w-auto mx-auto" />
-          <CardTitle className="text-2xl">Login</CardTitle>
           <CardDescription>Acesse o painel com suas credenciais.</CardDescription>
         </CardHeader>
         <form onSubmit={handleLogin}>
