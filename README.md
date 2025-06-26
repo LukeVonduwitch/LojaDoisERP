@@ -67,6 +67,16 @@ npm run dev
 
 Isso iniciará a aplicação em modo de desenvolvimento com o Turbopack, tornando-a acessível em [http://localhost:9002](http://localhost:9002). O aplicativo será recarregado automaticamente sempre que você fizer alterações nos arquivos.
 
+### Depurando com VS Code (Run and Debug)
+
+Para facilitar o desenvolvimento, o projeto inclui uma configuração de inicialização para o VS Code.
+
+1.  Vá para a aba "Run and Debug" no menu lateral do VS Code (ícone de play com um inseto).
+2.  No topo da aba, você verá um menu suspenso. Selecione a opção **"Next.js: debug server"**.
+3.  Pressione o botão verde de play (ou a tecla F5) para iniciar o servidor de desenvolvimento.
+4.  O terminal do VS Code será aberto e executará o comando `npm run dev`, e você poderá acessar a aplicação em [http://localhost:9002](http://localhost:9002).
+
+
 ## 📁 Project Structure (Estrutura do Projeto)
 
 A estrutura de pastas do projeto foi organizada para ser intuitiva e escalável:
