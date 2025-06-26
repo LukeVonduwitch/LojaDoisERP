@@ -89,9 +89,11 @@ export default function LoginPage() {
           </CardFooter>
         </form>
       </Card>
-      <footer className="absolute bottom-4 text-center text-sm text-muted-foreground">
-        <p>&copy; {new Date().getFullYear()} Vestuário ERP. Todos os direitos reservados.</p>
-        <p>Desenvolvido por Eros.</p>
+      <footer className="absolute bottom-6 w-full px-4">
+        <div className="text-center text-sm text-muted-foreground space-y-1">
+            <p>&copy; {new Date().getFullYear()} Vestuário ERP. Todos os direitos reservados.</p>
+            <p>Uma solução de gestão criada por <span className="font-semibold text-foreground/80">Eros</span>.</p>
+        </div>
       </footer>
     </div>
   );
