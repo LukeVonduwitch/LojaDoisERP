@@ -163,13 +163,14 @@ export default function SettingsPage() {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                     <Label htmlFor="theme">Preferência de Tema</Label>
-                    <Select value={theme} onValueChange={(value) => setTheme(value as "light" | "dark" | "system")}>
+                    <Select value={theme} onValueChange={(value) => setTheme(value as "light" | "dark" | "system" | "liquid-glass")}>
                         <SelectTrigger className="w-full">
                             <SelectValue placeholder="Selecione um tema" />
                         </SelectTrigger>
                         <SelectContent>
                             <SelectItem value="light">Claro</SelectItem>
                             <SelectItem value="dark">Escuro</SelectItem>
+                            <SelectItem value="liquid-glass">Liquid Glass</SelectItem>
                             <SelectItem value="system">Padrão do Sistema</SelectItem>
                         </SelectContent>
                     </Select>

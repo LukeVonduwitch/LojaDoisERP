@@ -5,7 +5,7 @@ import * as React from "react"
 
 const SETTINGS_KEY = 'vestuario-erp-app-settings';
 
-type Theme = "dark" | "light" | "system"
+type Theme = "dark" | "light" | "system" | "liquid-glass";
 
 type ThemeProviderProps = {
   children: React.ReactNode
@@ -32,7 +32,7 @@ export function ThemeProvider({
   React.useEffect(() => {
     const root = window.document.documentElement
 
-    root.classList.remove("light", "dark")
+    root.classList.remove("light", "dark", "liquid-glass")
 
     if (theme === "system") {
       const systemTheme = window.matchMedia("(prefers-color-scheme: dark)")
@@ -40,18 +40,24 @@ export function ThemeProvider({
         ? "dark"
         : "light"
 
-      root.classList.add(systemTheme)
+      if (systemTheme !== "light") {
+        root.classList.add(systemTheme)
+      }
 
       const mediaQuery = window.matchMedia("(prefers-color-scheme: dark)")
       const handleChange = () => {
-        root.classList.remove("light", "dark")
-        root.classList.add(mediaQuery.matches ? "dark" : "light")
+        root.classList.remove("light", "dark", "liquid-glass")
+        if (mediaQuery.matches) {
+            root.classList.add("dark")
+        }
       }
       mediaQuery.addEventListener("change", handleChange)
       return () => mediaQuery.removeEventListener("change", handleChange)
     }
 
-    root.classList.add(theme)
+    if (theme !== "light") {
+        root.classList.add(theme)
+    }
   }, [theme])
 
   const value = {

@@ -36,12 +36,12 @@ export default function RootLayout({
                     return;
                   }
                   const { theme } = JSON.parse(settings);
-                  if (theme === 'dark') {
-                    document.documentElement.classList.add('dark');
-                  } else if (theme === 'system') {
+                  if (theme === 'system') {
                     if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
                       document.documentElement.classList.add('dark');
                     }
+                  } else if (theme && theme !== 'light') {
+                     document.documentElement.classList.add(theme);
                   }
                 } catch (e) {}
               })();
